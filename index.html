@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moet Law — TV Display System</title>
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --red:#BB0D03;--red-l:#e01005;
+  --gc:#161616;--gb:rgba(255,255,255,0.08);--gm:rgba(255,255,255,0.45);
+  --gs:rgba(255,255,255,0.15);--teal:#BB0D03;--gold:#FFFFFF;
+  --font:'League Spartan',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:#000;color:#fff;font-family:var(--font);overflow:hidden;}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 36px;height:54px;background:rgba(0,0,0,0.94);border-bottom:1px solid var(--gb);backdrop-filter:blur(12px);}
+#nav-left{display:flex;align-items:center;gap:14px;}
+.logo-txt{font-size:24px;font-weight:900;letter-spacing:.08em;}.logo-txt span{color:var(--red);}
+.live-badge{background:var(--red);color:#fff;font-size:9px;font-weight:800;letter-spacing:.14em;padding:3px 9px;border-radius:3px;text-transform:uppercase;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;display:inline-block;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#nav-dots{display:flex;gap:5px;align-items:center;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gs);cursor:pointer;transition:all .3s;border:none;padding:0;}
+.dot.active{background:var(--red);transform:scale(1.35);}
+#nav-right{display:flex;align-items:center;gap:20px;}
+#clock{font-size:21px;font-weight:700;letter-spacing:.04em;}
+#date-disp{font-size:12px;color:var(--gm);font-weight:500;}
+.mbtn{padding:5px 13px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1px solid var(--gb);background:transparent;color:var(--gm);font-family:var(--font);transition:all .2s;}
+.mbtn.on{background:var(--red);border-color:var(--red);color:#fff;}
+.mbtn:hover:not(.on){border-color:var(--gs);color:#fff;}
+#slide-counter{font-size:11px;color:var(--gm);font-weight:700;letter-spacing:.08em;min-width:50px;text-align:right;}
+
+#main{position:fixed;top:54px;left:0;right:0;bottom:0;}
+#pbar{position:fixed;bottom:0;left:0;height:3px;background:var(--red);z-index:300;}
+
+/* ===== DASHBOARD ===== */
+#dash{width:100%;height:100%;display:none;padding:20px 28px;gap:16px;flex-direction:column;}
+#dash.on{display:flex;}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex-shrink:0;}
+.kpi{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 18px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
+.kpi.g::before{background:var(--teal);}
+.kpi.y::before{background:var(--gold);}
+.kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:8px;}
+.kpi-val{font-size:40px;font-weight:900;line-height:1;color:#fff;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--gm);}
+.delta{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:3px;margin-top:6px;}
+.delta.up{background:rgba(187,13,3,.15);color:var(--teal);}
+.delta.dn{background:rgba(187,13,3,.15);color:#ff6b6b;}
+.delta.nt{background:rgba(255,255,255,.07);color:var(--gm);}
+.chart-rows{flex:1;display:grid;grid-template-rows:1fr 1fr;gap:14px;min-height:0;}
+.chart-row{display:grid;gap:14px;min-height:0;}
+.chart-row.r1{grid-template-columns:1fr;}
+.chart-row.r2{grid-template-columns:1fr 1fr;}
+.cpanel{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 18px;display:flex;flex-direction:column;min-height:0;}
+.ptitle{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--gm);margin-bottom:12px;flex-shrink:0;}
+.cwrap{flex:1;position:relative;min-height:0;}
+.cwrap canvas{position:absolute;inset:0;}
+.gb-item{margin-bottom:11px;}
+.gb-row{display:flex;justify-content:space-between;margin-bottom:5px;}
+.gb-name{font-size:12px;font-weight:700;color:#fff;}
+.gb-nums{font-size:12px;color:var(--gm);}
+.gb-track{height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.gb-fill{height:100%;border-radius:4px;background:var(--red);transition:width 1.2s ease;}
+.gb-fill.g{background:var(--red);}
+.gb-fill.y{background:var(--red);}
+.ttbl{width:100%;border-collapse:collapse;}
+.ttbl th{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gm);padding:0 0 8px;text-align:left;}
+.ttbl th:not(:first-child){text-align:right;}
+.ttbl td{font-size:13px;font-weight:600;padding:7px 0;border-top:1px solid var(--gb);}
+.ttbl td:not(:first-child){text-align:right;}
+.tnm{font-weight:800;color:#fff;}
+.win-row{padding:7px 0;border-bottom:1px solid var(--gb);display:flex;justify-content:space-between;align-items:center;}
+.win-amt{font-size:15px;font-weight:900;color:var(--gold);}
+.win-tp{font-size:11px;color:var(--gm);margin-top:2px;}
+.win-dt{font-size:10px;color:var(--gm);font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+
+/* ===== SLIDESHOW ===== */
+#show{width:100%;height:100%;display:none;position:relative;overflow:hidden;}
+#show.on{display:block;}
+.slide{position:absolute;inset:0;opacity:0;transform:translateX(70px);transition:opacity .65s ease,transform .65s ease;pointer-events:none;display:flex;flex-direction:column;}
+.slide.on{opacity:1;transform:translateX(0);pointer-events:auto;}
+.slide.out{opacity:0;transform:translateX(-70px);}
+.stopbar{height:4px;background:var(--red);flex-shrink:0;}
+.sbody{flex:1;display:flex;flex-direction:column;padding:28px 52px;overflow:hidden;}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin-bottom:8px;}
+.stitle{font-size:52px;font-weight:900;line-height:1.05;letter-spacing:-.01em;margin-bottom:14px;}
+.stitle .ac{color:var(--red);}
+
+/* SLIDE 1 — DARK FULL-SCREEN CORE VALUES */
+#s1{background:#000;position:relative;overflow:hidden;}
+.s1-bg-solid{position:absolute;inset:0;background:#000;}
+.s1-content{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;padding:32px 56px 32px;}
+/* Logo — main focal point */
+.s1-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-shrink:0;}
+.s1-logo-wrap{}
+.s1-logo{font-size:96px;font-weight:900;letter-spacing:.07em;line-height:1;color:#fff;}
+.s1-logo span{color:#BB0D03;}
+.s1-tagline{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:8px;}
+.s1-mission-wrap{max-width:500px;padding-top:14px;}
+.s1-mission{font-size:16px;font-weight:500;color:rgba(255,255,255,.6);line-height:1.65;font-style:italic;padding-left:0;}
+/* Values label */
+.s1-vals-label{font-size:10px;font-weight:900;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:16px;flex-shrink:0;}
+/* Core values grid */
+.s1-vals-main{flex:1;display:flex;align-items:stretch;gap:0;min-height:0;border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;}
+.s1-val-big{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 32px 32px;position:relative;}
+.s1-val-sep{width:1px;background:rgba(255,255,255,.07);flex-shrink:0;}
+/* Numbers — solid red, fully opaque */
+.s1-val-big-num{font-size:60px;font-weight:900;color:#BB0D03;line-height:1;margin-bottom:10px;}
+.s1-val-big-name{font-size:30px;font-weight:900;color:#fff;line-height:1.15;letter-spacing:-.01em;margin-bottom:12px;}
+.s1-val-big-desc{font-size:14px;font-weight:500;color:rgba(255,255,255,.48);line-height:1.5;}
+/* Bottom bar */
+.s1-bottom-bar{flex-shrink:0;margin-top:18px;display:flex;justify-content:flex-end;}
+.s1-date{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.28);}
+
+/* SINGLE KPI PERFORMANCE SLIDES (s2–s5, s6–s8) */
+.solo-slide{flex:1;display:flex;flex-direction:column;}
+.solo-kpi-bar{display:flex;gap:14px;margin-bottom:20px;flex-shrink:0;}
+.solo-kpi-card{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:18px 22px;flex:1;position:relative;overflow:hidden;}
+.solo-kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
+.solo-kpi-card.g::before{background:var(--teal);}
+.solo-kpi-lbl{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;}
+.solo-kpi-val{font-size:52px;font-weight:900;line-height:1;color:#fff;margin-bottom:2px;}
+.solo-kpi-sub{font-size:13px;color:var(--gm);font-weight:600;}
+.solo-chart-wrap{flex:1;background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:20px 24px;display:flex;flex-direction:column;min-height:0;}
+.solo-chart-inner{flex:1;position:relative;min-height:0;}
+
+/* TEAM SOLO SLIDES (s6–s8) */
+.team-solo{flex:1;display:flex;flex-direction:column;gap:16px;min-height:0;}
+.team-kpi-row{display:flex;gap:14px;flex-shrink:0;}
+.team-kpi{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 20px;flex:1;position:relative;overflow:hidden;}
+.team-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
+.team-kpi.g::before{background:var(--teal);}
+.team-kpi.y::before{background:var(--gold);}
+.team-kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;}
+.team-kpi-val{font-size:38px;font-weight:900;color:#fff;line-height:1;}
+.team-kpi-sub{font-size:11px;color:var(--gm);margin-top:3px;}
+.team-charts-row{flex:1;display:grid;grid-template-columns:1fr;gap:14px;min-height:0;}
+.team-chart-panel{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 18px;display:flex;flex-direction:column;}
+.team-chart-inner{flex:1;position:relative;min-height:0;}
+.team-name-badge{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px;}
+.team-name-dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0;}
+.team-name-label{font-size:28px;font-weight:900;color:#fff;}
+
+/* SETTLEMENT SLIDE */
+.settle-stats-row{display:flex;gap:16px;margin-bottom:18px;flex-shrink:0;}
+.settle-stat{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:18px 22px;flex:1;position:relative;overflow:hidden;}
+.settle-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);}
+.settle-stat-lbl{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;}
+.settle-stat-val{font-size:38px;font-weight:900;color:var(--gold);}
+.settle-stat-sub{font-size:12px;color:var(--gm);margin-top:4px;}
+.wins-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.wcard{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:20px 18px;position:relative;overflow:hidden;}
+.wcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);}
+.wcard-amt{font-size:30px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:6px;}
+.wcard-case{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;}
+.wcard-type{font-size:12px;color:var(--gm);}
+.wcard-date{font-size:10px;color:var(--gm);margin-top:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;}
+
+/* DEMAND SLIDE */
+.demand-stats-row{display:flex;gap:14px;margin-bottom:18px;flex-shrink:0;}
+.dstat{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 20px;flex:1;position:relative;overflow:hidden;}
+.dstat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--teal);}
+.dstat-lbl{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;}
+.dstat-val{font-size:36px;font-weight:900;color:var(--teal);}
+.dstat-sub{font-size:12px;color:var(--gm);margin-top:3px;}
+.demand-body{flex:1;display:grid;grid-template-columns:1.3fr 1fr;gap:14px;min-height:0;}
+.dchart-panel{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 18px;display:flex;flex-direction:column;}
+.demand-list{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 18px;overflow:hidden;}
+.dlist-item{padding:11px 0;border-bottom:1px solid var(--gb);display:flex;justify-content:space-between;align-items:center;}
+.dlist-item:last-child{border-bottom:none;}
+.dlist-label{font-size:15px;font-weight:700;color:#fff;}
+.dlist-type{font-size:11px;color:var(--gm);margin-top:2px;}
+.dlist-val{font-size:20px;font-weight:900;color:var(--teal);}
+
+/* ACTIVE CASES SLIDE */
+.cases-stats-row{display:flex;gap:14px;margin-bottom:20px;flex-shrink:0;}
+.cstat{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:18px 22px;flex:1;position:relative;overflow:hidden;}
+.cstat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
+.cstat.g::before{background:var(--teal);}
+.cstat.y::before{background:var(--gold);}
+.cstat-lbl{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;}
+.cstat-val{font-size:44px;font-weight:900;color:#fff;line-height:1;}
+.cstat-sub{font-size:12px;color:var(--gm);margin-top:4px;}
+.cases-donut-wrap{flex:1;background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:20px 24px;display:flex;flex-direction:column;min-height:0;}
+.cases-donut-inner{flex:1;position:relative;min-height:0;}
+
+/* EMPLOYEE SLIDE */
+#s12 .sbody{flex-direction:row;align-items:center;gap:60px;padding:32px 60px;}
+/* EMPLOYEE CENTERED (no avatar) */
+.emp-centered{max-width:780px;width:100%;}
+.emp-photo-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.emp-photo{width:240px;height:240px;border-radius:50%;border:4px solid var(--red);background:var(--gc);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.emp-init{font-size:72px;font-weight:900;color:var(--red);}
+.emp-photo img{width:100%;height:100%;object-fit:cover;}
+.emp-info{flex:1;max-width:600px;}
+.emp-badge-lbl{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;padding:5px 14px;border-radius:3px;margin-bottom:16px;}
+.emp-name{font-size:50px;font-weight:900;color:#fff;line-height:1;margin-bottom:6px;}
+.emp-role{font-size:19px;color:var(--gm);font-weight:500;margin-bottom:20px;}
+.emp-quote{font-size:18px;color:rgba(255,255,255,.88);font-style:italic;line-height:1.65;border-left:3px solid var(--red);padding-left:16px;margin-bottom:22px;}
+.accomp-section-lbl{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--gm);margin-bottom:10px;}
+.accomp-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px;}
+.accomp-dot{flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:6px;}
+.accomp-txt{font-size:15px;color:rgba(255,255,255,.85);font-weight:500;line-height:1.4;}
+
+/* ANNIVERSARIES — BIG TV FORMAT */
+.celeb-two-col{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:24px;min-height:0;}
+.celeb-big-section{background:var(--gc);border:1px solid var(--gb);border-radius:12px;padding:24px 28px;display:flex;flex-direction:column;overflow:hidden;}
+.celeb-big-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid var(--gb);}
+.celeb-big-icon{font-size:28px;line-height:1;}
+.celeb-big-title{font-size:18px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);}
+/* Individual celebration cards */
+.celeb-big-item{display:flex;align-items:center;gap:18px;padding:14px 0;border-bottom:1px solid var(--gb);}
+.celeb-big-item:last-child{border-bottom:none;}
+.celeb-big-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;flex-shrink:0;}
+.celeb-big-avatar.anniv{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.4);color:var(--gold);}
+.celeb-big-avatar.bday{background:rgba(187,13,3,.15);border:2px solid rgba(187,13,3,.4);color:var(--teal);}
+.celeb-big-name{font-size:26px;font-weight:800;color:#fff;line-height:1.1;}
+.celeb-big-detail{font-size:15px;color:rgba(255,255,255,.5);margin-top:4px;font-weight:500;}
+.celeb-big-badge{margin-left:auto;flex-shrink:0;padding:6px 16px;border-radius:5px;font-size:15px;font-weight:800;letter-spacing:.04em;}
+.celeb-big-badge.anniv{background:rgba(255,255,255,.15);color:var(--gold);}
+.celeb-big-badge.bday{background:rgba(187,13,3,.15);color:var(--teal);}
+
+
+/* CELEB PHOTO CIRCLES */
+.celeb-photo-circle{width:56px;height:56px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.celeb-photo-circle.anniv{border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.1);}
+.celeb-photo-circle.bday{border:2px solid rgba(187,13,3,.5);background:rgba(187,13,3,.1);}
+.celeb-circle-img{width:100%;height:100%;object-fit:cover;display:block;}
+.celeb-circle-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.5;}
+
+/* ANNOUNCEMENTS */
+
+.ann-list{display:flex;flex-direction:column;gap:12px;flex:1;overflow:hidden;}
+.ann-item{background:var(--gc);border:1px solid var(--gb);border-radius:8px;padding:16px 20px;display:flex;gap:14px;align-items:flex-start;}
+.ann-icon-wrap{flex-shrink:0;width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.ann-icon-wrap.red{background:rgba(187,13,3,.2);}
+.ann-icon-wrap.teal{background:rgba(187,13,3,.2);}
+.ann-icon-wrap.gold{background:rgba(255,255,255,.2);}
+.ann-text{font-size:17px;font-weight:600;color:rgba(255,255,255,.9);line-height:1.4;}
+.ann-date{font-size:11px;color:var(--gm);margin-top:4px;}
+.ann-tag{flex-shrink:0;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:3px;}
+.ann-tag.EVENT{background:rgba(187,13,3,.2);color:var(--teal);}
+.ann-tag.UPDATE{background:rgba(187,13,3,.2);color:#ff6b6b;}
+.ann-tag.POLICY{background:rgba(255,255,255,.2);color:var(--gold);}
+
+/* TRAINING */
+.train-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0;}
+.train-col{display:flex;flex-direction:column;gap:12px;overflow:hidden;}
+.train-item{background:var(--gc);border:1px solid var(--gb);border-radius:8px;padding:14px 18px;}
+.train-label{font-size:9px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--red);margin-bottom:5px;}
+.train-text{font-size:16px;font-weight:700;color:rgba(255,255,255,.9);line-height:1.3;}
+.train-sub{font-size:12px;color:var(--gm);margin-top:5px;font-weight:500;line-height:1.4;}
+
+/* GOALS */
+.goals-two{display:grid;grid-template-columns:1fr 1fr;gap:18px;flex:1;min-height:0;}
+.goal-panel{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:18px 22px;display:flex;flex-direction:column;}
+.goal-panel-title{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--gm);margin-bottom:14px;flex-shrink:0;}
+.bg-item{margin-bottom:16px;}
+.bg-row{display:flex;justify-content:space-between;margin-bottom:7px;}
+.bg-name{font-size:15px;font-weight:700;color:#fff;}
+.bg-right{display:flex;align-items:center;gap:8px;}
+.bg-nums{font-size:13px;color:var(--gm);}
+.bg-pct{font-size:15px;font-weight:900;color:var(--red);}
+.bg-track{height:9px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;}
+.bg-fill{height:100%;border-radius:5px;background:var(--red);}
+.bg-fill.g{background:var(--red);}
+.bg-fill.y{background:var(--red);}
+.achiev-list{flex:1;overflow:hidden;}
+.achiev-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--gb);}
+.achiev-item:last-child{border-bottom:none;}
+.achiev-dot{flex-shrink:0;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-top:5px;}
+.achiev-txt{font-size:14px;color:rgba(255,255,255,.88);font-weight:600;line-height:1.4;}
+
+
+
+/* CONFIG */
+#cfg{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.97);display:none;flex-direction:column;padding:40px 56px;overflow-y:auto;}
+#cfg.on{display:flex;}
+.cfg-h{font-size:28px;font-weight:900;color:#fff;margin-bottom:6px;}
+.cfg-sub{font-size:14px;color:var(--gm);margin-bottom:28px;}
+.cfg-sec{margin-bottom:28px;}
+.cfg-sec-title{font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gb);}
+.cfg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.cf label{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gm);margin-bottom:6px;}
+.cf input,.cf textarea{width:100%;background:var(--gc);border:1px solid var(--gb);border-radius:6px;padding:9px 12px;color:#fff;font-family:var(--font);font-size:14px;font-weight:500;outline:none;transition:border-color .2s;}
+.cf input:focus,.cf textarea:focus{border-color:var(--red);}
+.cf textarea{min-height:76px;resize:vertical;}
+.cfg-row{display:flex;gap:10px;margin-top:20px;}
+.cbtn{padding:11px 24px;border-radius:6px;font-family:var(--font);font-size:13px;font-weight:800;letter-spacing:.05em;cursor:pointer;border:none;transition:all .2s;}
+.cbtn.p{background:var(--red);color:#fff;}
+.cbtn.p:hover{background:var(--red-l);}
+.cbtn.s{background:var(--gc);color:var(--gm);border:1px solid var(--gb);}
+.cbtn.s:hover{color:#fff;border-color:var(--gs);}
+.sheets-info{background:rgba(187,13,3,.07);border:1px solid rgba(187,13,3,.2);border-radius:8px;padding:14px 18px;margin-bottom:18px;}
+.sheets-info p{font-size:13px;color:rgba(255,255,255,.78);line-height:1.7;}
+.sheets-info strong{color:var(--teal);}
+.url-row{display:flex;gap:10px;align-items:flex-end;}
+.url-row .cf{flex:1;}
+.fetch-btn{padding:9px 18px;background:var(--teal);color:#fff;border:none;border-radius:6px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;height:40px;}
+.fstatus{font-size:11px;margin-top:6px;font-weight:700;}
+.fstatus.ok{color:var(--teal);}
+.fstatus.err{color:#ff6b6b;}
+
+#help{position:fixed;bottom:14px;right:14px;z-index:150;background:rgba(255,255,255,.05);border:1px solid var(--gb);border-radius:7px;padding:8px 14px;font-size:10px;color:var(--gm);font-weight:700;letter-spacing:.04em;}
+#help kbd{background:rgba(255,255,255,.1);border:1px solid var(--gb);border-radius:3px;padding:1px 5px;font-family:monospace;font-size:10px;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+
+/* FULL-SCREEN PHOTO SLIDES */
+.fs-photo-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;}
+.fs-photo-img{width:100%;height:100%;object-fit:cover;display:block;}
+.fs-photo-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;width:100%;height:100%;background:#0a0a0a;border:2px dashed rgba(255,255,255,.12);border-radius:0;}
+.fs-ph-icon{font-size:64px;opacity:.3;}
+.fs-ph-text{font-size:22px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.06em;}
+.fs-ph-hint{font-size:13px;color:rgba(255,255,255,.2);font-weight:500;}
+
+/* EMPLOYEE PHOTO CIRCLE */
+.emp-centered{max-width:780px;width:100%;display:flex;flex-direction:column;align-items:flex-start;}
+.emp-photo-circle{width:160px;height:160px;border-radius:50%;border:4px solid #BB0D03;overflow:hidden;background:var(--gc);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:4px;}
+.emp-circle-img{width:100%;height:100%;object-fit:cover;}
+.emp-circle-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.emp-circle-ph-icon{font-size:52px;opacity:.35;}
+
+/* PHOTO UPLOAD FIELD IN CONFIG */
+.photo-upload-wrap{display:flex;flex-direction:column;gap:8px;}
+.photo-upload-wrap input[type=file]{width:100%;background:var(--gc);border:1px dashed rgba(255,255,255,.2);border-radius:6px;padding:10px 12px;color:var(--gm);font-family:var(--font);font-size:13px;cursor:pointer;}
+.photo-upload-wrap input[type=file]::file-selector-button{background:var(--red);color:#fff;border:none;border-radius:4px;padding:5px 14px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;margin-right:12px;}
+.photo-preview{width:100%;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--gb);display:none;}
+.photo-clear-btn{background:transparent;border:1px solid var(--gb);color:var(--gm);font-family:var(--font);font-size:11px;font-weight:700;padding:4px 12px;border-radius:4px;cursor:pointer;width:fit-content;}
+.photo-clear-btn:hover{color:#fff;border-color:var(--gs);}
+
+
+/* FRIDAY THEME DAY SLIDE */
+#s-friday{background:#000;}
+.friday-inner{display:flex;flex-direction:column;align-items:center;max-width:700px;}
+.friday-eyebrow{font-size:11px;font-weight:900;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.friday-title{font-size:72px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.01em;margin-bottom:16px;}
+.friday-subtitle{font-size:48px;font-weight:800;color:var(--gold);line-height:1.1;margin-bottom:24px;}
+.friday-desc{font-size:20px;font-weight:500;color:rgba(255,255,255,.6);line-height:1.6;max-width:580px;margin-bottom:28px;}
+.friday-date{font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+
+</style>
+</head>
+<body>
+<h1 class="sr-only">Moet Law TV Display System</h1>
+
+<nav id="nav">
+  <div id="nav-left">
+    <div class="logo-txt"><span>MOET</span> LAW</div>
+    <div class="live-badge">Live</div>
+    <div id="last-sync" style="font-size:10px;color:rgba(255,255,255,.35);font-weight:600;letter-spacing:.04em;"></div>
+    <div class="live-dot"></div>
+  </div>
+  <div id="nav-dots"></div>
+  <div id="nav-right">
+    <div><div id="clock">--:--</div><div id="date-disp">Loading…</div></div>
+    <div id="slide-counter" style="display:none;"></div>
+    <div style="display:flex;gap:5px;">
+      <button class="mbtn on" onclick="setMode('dash')">Dashboard</button>
+      <button class="mbtn" onclick="setMode('show')">Slideshow</button>
+      <button class="mbtn" onclick="openCfg()">⚙ Setup</button>
+    </div>
+  </div>
+</nav>
+
+<div id="main">
+
+<!-- DASHBOARD -->
+<div id="dash" class="on">
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-lbl">New Cases Signed</div><div class="kpi-val" id="d-nc">--</div><div class="kpi-sub">This Month</div></div>
+    <div class="kpi g"><div class="kpi-lbl">Demands Sent</div><div class="kpi-val" id="d-dm">--</div><div class="kpi-sub">This Month</div></div>
+  </div>
+  <div class="chart-rows">
+    <div class="chart-row r1">
+      
+      
+      <div class="cpanel"><div class="ptitle">Team Overview</div><table class="ttbl"><thead><tr><th>Team</th><th>Active</th><th>Settled</th></tr></thead><tbody id="d-team-tbody"></tbody></table></div>
+    </div>
+    <div class="chart-row r2">
+      <div class="cpanel"><div class="ptitle">Active Cases by Team</div><div class="cwrap"><canvas id="c-ta" role="img" aria-label="Active by team">Active cases</canvas></div></div>
+      <div class="cpanel"><div class="ptitle">Settlement Amount by Team</div><div class="cwrap"><canvas id="c-ts" role="img" aria-label="Settlements by team">Settlements</canvas></div></div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- SLIDESHOW -->
+<div id="show">
+
+<!-- SLIDE 1: Intro + Who We Are (combined) -->
+<div class="slide" id="s1">
+  <div class="s1-bg-solid"></div>
+  <div class="s1-content">
+
+    <!-- Top: Logo + mission -->
+    <div class="s1-top">
+      <div class="s1-logo-wrap">
+        <div class="s1-logo"><span>MOET</span> LAW</div>
+        <div class="s1-tagline">Personal Injury Law Firm</div>
+      </div>
+      <div class="s1-mission-wrap">
+        <div class="s1-mission">"Our main focus is on helping our clients receive the compensation they deserve."</div>
+      </div>
+    </div>
+
+    <!-- Main: Core Values — large and centred -->
+    <div class="s1-vals-label">Our Core Values</div>
+    <div class="s1-vals-main">
+      <div class="s1-val-big">
+        <div class="s1-val-big-num">01</div>
+        <div class="s1-val-big-name">Relentless<br>Advocacy</div>
+        <div class="s1-val-big-desc">We fight hard for every client, every case, every time.</div>
+      </div>
+      <div class="s1-val-sep"></div>
+      <div class="s1-val-big">
+        <div class="s1-val-big-num">02</div>
+        <div class="s1-val-big-name">Integrity</div>
+        <div class="s1-val-big-desc">Honest counsel, transparent process, trusted results.</div>
+      </div>
+      <div class="s1-val-sep"></div>
+      <div class="s1-val-big">
+        <div class="s1-val-big-num">03</div>
+        <div class="s1-val-big-name">Innovation</div>
+        <div class="s1-val-big-desc">Modern strategies that maximize outcomes for clients.</div>
+      </div>
+      <div class="s1-val-sep"></div>
+      <div class="s1-val-big">
+        <div class="s1-val-big-num">04</div>
+        <div class="s1-val-big-name">One Team,<br>One Mission</div>
+        <div class="s1-val-big-desc">United in purpose — winning justice for those we serve.</div>
+      </div>
+    </div>
+
+    <!-- Bottom: date -->
+    <div class="s1-bottom-bar">
+      <div class="s1-date" id="s1-date">--</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="slide" id="sph1">
+  <div class="fs-photo-wrap">
+    <img id="ph1-img" class="fs-photo-img" src="" alt="Photo Slide 1" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph1-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 1</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s2">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Monthly Firm Performance</div>
+    <div class="stitle" style="font-size:42px;margin-bottom:16px;">Cases <span class="ac">Signed</span> vs Goal</div>
+    <div class="solo-slide">
+      <div class="solo-kpi-bar">
+        <div class="solo-kpi-card">
+          <div class="solo-kpi-lbl">Actual — Cases Signed</div>
+          <div class="solo-kpi-val" id="s2-actual">--</div>
+          <div class="solo-kpi-sub">This Month</div>
+        </div>
+        <div class="solo-kpi-card g">
+          <div class="solo-kpi-lbl">Monthly Goal</div>
+          <div class="solo-kpi-val" id="s2-goal">--</div>
+          <div class="solo-kpi-sub">Target</div>
+        </div>
+      </div>
+      <div class="solo-chart-wrap">
+        <div class="ptitle">Cases Signed — Actual vs Monthly Goal</div>
+        <div class="solo-chart-inner"><canvas id="c-s2" role="img" aria-label="Cases signed vs goal chart">Cases vs goal</canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: Demands Sent vs Goal -->
+<div class="slide" id="s3">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Monthly Firm Performance</div>
+    <div class="stitle" style="font-size:42px;margin-bottom:16px;">Demands <span class="ac">Sent</span> vs Goal</div>
+    <div class="solo-slide">
+      <div class="solo-kpi-bar">
+        <div class="solo-kpi-card">
+          <div class="solo-kpi-lbl">Actual — Demands Sent</div>
+          <div class="solo-kpi-val" id="s3-actual">--</div>
+          <div class="solo-kpi-sub">This Month</div>
+        </div>
+        <div class="solo-kpi-card g">
+          <div class="solo-kpi-lbl">Monthly Goal</div>
+          <div class="solo-kpi-val" id="s3-goal">--</div>
+          <div class="solo-kpi-sub">Target</div>
+        </div>
+      </div>
+      <div class="solo-chart-wrap">
+        <div class="ptitle">Demands Sent — Actual vs Monthly Goal</div>
+        <div class="solo-chart-inner"><canvas id="c-s3" role="img" aria-label="Demands sent vs goal chart">Demands vs goal</canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: Settlements vs Goal -->
+<div class="slide" id="s4a">
+  <div class="stopbar" style="background:var(--gold);"></div>
+  <div class="sbody">
+    <div class="eyebrow">Monthly Firm Performance</div>
+    <div class="stitle" style="font-size:42px;margin-bottom:16px;">Pre-Litigation Settlement <span class="ac">vs Goal</span></div>
+    <div class="solo-slide">
+      <div class="solo-kpi-bar">
+        <div class="solo-kpi-card" >
+          <div class="solo-kpi-lbl">Total Settlement Amount</div>
+          <div class="solo-kpi-val" id="s4a-amount" style="color:var(--gold);font-size:32px;">--</div>
+          <div class="solo-kpi-sub">This Month</div>
+        </div>
+        <div class="solo-kpi-card g">
+          <div class="solo-kpi-lbl">Amount Goal</div>
+          <div class="solo-kpi-val" id="s4a-amount-goal" style="font-size:32px;">--</div>
+          <div class="solo-kpi-sub">Target</div>
+        </div>
+      </div>
+      <div class="solo-chart-wrap">
+        <div class="ptitle">Pre-Litigation Settlements — Actual vs Monthly Goal</div>
+        <div class="solo-chart-inner"><canvas id="c-s4a" role="img" aria-label="Pre-litigation settlements vs goal chart">Pre-lit settlements vs goal</canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s4b">
+  <div class="stopbar" style="background:var(--gold);"></div>
+  <div class="sbody">
+    <div class="eyebrow">Monthly Firm Performance</div>
+    <div class="stitle" style="font-size:42px;margin-bottom:16px;">Litigation Settlement <span class="ac">vs Goal</span></div>
+    <div class="solo-slide">
+      <div class="solo-kpi-bar">
+        <div class="solo-kpi-card" >
+          <div class="solo-kpi-lbl">Total Settlement Amount</div>
+          <div class="solo-kpi-val" id="s4b-amount" style="color:var(--gold);font-size:32px;">--</div>
+          <div class="solo-kpi-sub">This Month</div>
+        </div>
+        <div class="solo-kpi-card g">
+          <div class="solo-kpi-lbl">Amount Goal</div>
+          <div class="solo-kpi-val" id="s4b-amount-goal" style="font-size:32px;">--</div>
+          <div class="solo-kpi-sub">Target</div>
+        </div>
+      </div>
+      <div class="solo-chart-wrap">
+        <div class="ptitle">Litigation Settlements — Actual vs Monthly Goal</div>
+        <div class="solo-chart-inner"><canvas id="c-s4b" role="img" aria-label="Litigation settlements vs goal chart">Lit settlements vs goal</canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph4">
+  <div class="fs-photo-wrap">
+    <img id="ph4-img" class="fs-photo-img" src="" alt="Photo Slide 4" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph4-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 4</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph2">
+  <div class="fs-photo-wrap">
+    <img id="ph2-img" class="fs-photo-img" src="" alt="Photo Slide 2" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph2-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 2</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s6">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Department Performance</div>
+    <div class="stitle" style="font-size:38px;margin-bottom:14px;"><span class="ac" id="s6-team-name">Team Alpha</span> — Performance</div>
+    <div class="team-solo">
+      <div class="team-kpi-row">
+        <div class="team-kpi"><div class="team-kpi-lbl">Cases Managed</div><div class="team-kpi-val" id="s6-active">--</div><div class="team-kpi-sub">Active Cases</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Team Demands</div><div class="team-kpi-val" id="s6-demands">--</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi y"><div class="team-kpi-lbl">Settlement Amount</div><div class="team-kpi-val" id="s6-settle-amt" style="color:var(--gold);">$0</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Settlement Goal Amount</div><div class="team-kpi-val" id="s6-goal-s-amt" style="color:var(--teal);">$0</div><div class="team-kpi-sub">Monthly Target</div></div>
+      </div>
+      <div class="team-charts-row">
+        <div class="team-chart-panel">
+          <div class="ptitle">Settlements Achieved vs Monthly Goal</div>
+          <div class="team-chart-inner"><canvas id="c-s6-sa" role="img" aria-label="Team settlements vs goal">Settlements</canvas></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph5">
+  <div class="fs-photo-wrap">
+    <img id="ph5-img" class="fs-photo-img" src="" alt="Photo Slide 5" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph5-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 5</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s7">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Department Performance</div>
+    <div class="stitle" style="font-size:38px;margin-bottom:14px;"><span class="ac" id="s7-team-name">Team Beta</span> — Performance</div>
+    <div class="team-solo">
+      <div class="team-kpi-row">
+        <div class="team-kpi"><div class="team-kpi-lbl">Cases Managed</div><div class="team-kpi-val" id="s7-active">--</div><div class="team-kpi-sub">Active Cases</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Team Demands</div><div class="team-kpi-val" id="s7-demands">--</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi y"><div class="team-kpi-lbl">Settlement Amount</div><div class="team-kpi-val" id="s7-settle-amt" style="color:var(--gold);">$0</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Settlement Goal Amount</div><div class="team-kpi-val" id="s7-goal-s-amt" style="color:var(--teal);">$0</div><div class="team-kpi-sub">Monthly Target</div></div>
+      </div>
+      <div class="team-charts-row">
+        <div class="team-chart-panel">
+          <div class="ptitle">Settlements Achieved vs Monthly Goal</div>
+          <div class="team-chart-inner"><canvas id="c-s7-sa" role="img" aria-label="Team settlements vs goal">Settlements</canvas></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph6">
+  <div class="fs-photo-wrap">
+    <img id="ph6-img" class="fs-photo-img" src="" alt="Photo Slide 6" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph6-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 6</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s8">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Department Performance</div>
+    <div class="stitle" style="font-size:38px;margin-bottom:14px;"><span class="ac" id="s8-team-name">Team Gamma</span> — Performance</div>
+    <div class="team-solo">
+      <div class="team-kpi-row">
+        <div class="team-kpi"><div class="team-kpi-lbl">Cases Managed</div><div class="team-kpi-val" id="s8-active">--</div><div class="team-kpi-sub">Active Cases</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Team Demands</div><div class="team-kpi-val" id="s8-demands">--</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi y"><div class="team-kpi-lbl">Settlement Amount</div><div class="team-kpi-val" id="s8-settle-amt" style="color:var(--gold);">$0</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Settlement Goal Amount</div><div class="team-kpi-val" id="s8-goal-s-amt" style="color:var(--teal);">$0</div><div class="team-kpi-sub">Monthly Target</div></div>
+      </div>
+      <div class="team-charts-row">
+        <div class="team-chart-panel">
+          <div class="ptitle">Settlements Achieved vs Monthly Goal</div>
+          <div class="team-chart-inner"><canvas id="c-s8-sa" role="img" aria-label="Team settlements vs goal">Settlements</canvas></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph3">
+  <div class="fs-photo-wrap">
+    <img id="ph3-img" class="fs-photo-img" src="" alt="Photo Slide 3" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph3-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 3</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s6b">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Department Performance</div>
+    <div class="stitle" style="font-size:38px;margin-bottom:14px;"><span class="ac" id="s6b-team-name">Team Delta</span> — Performance</div>
+    <div class="team-solo">
+      <div class="team-kpi-row">
+        <div class="team-kpi"><div class="team-kpi-lbl">Cases Managed</div><div class="team-kpi-val" id="s6b-active">--</div><div class="team-kpi-sub">Active Cases</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Team Demands</div><div class="team-kpi-val" id="s6b-demands">--</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi y"><div class="team-kpi-lbl">Settlement Amount</div><div class="team-kpi-val" id="s6b-settle-amt" style="color:var(--gold);">$0</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Settlement Goal Amount</div><div class="team-kpi-val" id="s6b-goal-s-amt" style="color:var(--teal);">$0</div><div class="team-kpi-sub">Monthly Target</div></div>
+      </div>
+      <div class="team-charts-row">
+        <div class="team-chart-panel">
+          <div class="ptitle">Settlements Achieved vs Monthly Goal</div>
+          <div class="team-chart-inner"><canvas id="c-s6b-sa" role="img" aria-label="Team settlements vs goal">Settlements</canvas></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph7">
+  <div class="fs-photo-wrap">
+    <img id="ph7-img" class="fs-photo-img" src="" alt="Photo Slide 7" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph7-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 7</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s6c">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Department Performance</div>
+    <div class="stitle" style="font-size:38px;margin-bottom:14px;"><span class="ac" id="s6c-team-name">Team Echo</span> — Performance</div>
+    <div class="team-solo">
+      <div class="team-kpi-row">
+        <div class="team-kpi"><div class="team-kpi-lbl">Cases Managed</div><div class="team-kpi-val" id="s6c-active">--</div><div class="team-kpi-sub">Active Cases</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Team Demands</div><div class="team-kpi-val" id="s6c-demands">--</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi y"><div class="team-kpi-lbl">Settlement Amount</div><div class="team-kpi-val" id="s6c-settle-amt" style="color:var(--gold);">$0</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Settlement Goal Amount</div><div class="team-kpi-val" id="s6c-goal-s-amt" style="color:var(--teal);">$0</div><div class="team-kpi-sub">Monthly Target</div></div>
+      </div>
+      <div class="team-charts-row">
+        <div class="team-chart-panel">
+          <div class="ptitle">Settlements Achieved vs Monthly Goal</div>
+          <div class="team-chart-inner"><canvas id="c-s6c-sa" role="img" aria-label="Team settlements vs goal">Settlements</canvas></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph8">
+  <div class="fs-photo-wrap">
+    <img id="ph8-img" class="fs-photo-img" src="" alt="Photo Slide 8" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph8-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 8</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s6d">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Department Performance</div>
+    <div class="stitle" style="font-size:38px;margin-bottom:14px;"><span class="ac" id="s6d-team-name">Team Foxtrot</span> — Performance</div>
+    <div class="team-solo">
+      <div class="team-kpi-row">
+        <div class="team-kpi"><div class="team-kpi-lbl">Cases Managed</div><div class="team-kpi-val" id="s6d-active">--</div><div class="team-kpi-sub">Active Cases</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Team Demands</div><div class="team-kpi-val" id="s6d-demands">--</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi y"><div class="team-kpi-lbl">Settlement Amount</div><div class="team-kpi-val" id="s6d-settle-amt" style="color:var(--gold);">$0</div><div class="team-kpi-sub">This Month</div></div>
+        <div class="team-kpi g"><div class="team-kpi-lbl">Settlement Goal Amount</div><div class="team-kpi-val" id="s6d-goal-s-amt" style="color:var(--teal);">$0</div><div class="team-kpi-sub">Monthly Target</div></div>
+      </div>
+      <div class="team-charts-row">
+        <div class="team-chart-panel">
+          <div class="ptitle">Settlements Achieved vs Monthly Goal</div>
+          <div class="team-chart-inner"><canvas id="c-s6d-sa" role="img" aria-label="Team settlements vs goal">Settlements</canvas></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph9">
+  <div class="fs-photo-wrap">
+    <img id="ph9-img" class="fs-photo-img" src="" alt="Photo Slide 9" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph9-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 9</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s12">
+  <div class="stopbar"></div>
+  <div class="sbody" style="justify-content:center;align-items:center;">
+    <div class="emp-centered">
+      <!-- Profile photo circle -->
+      <div class="emp-photo-circle" id="s12-photo-wrap">
+        <img id="s12-photo-img" class="emp-circle-img" src="" alt="Employee photo" style="display:none;" />
+        <div class="emp-circle-placeholder" id="s12-photo-ph">
+          <span class="emp-circle-ph-icon">👤</span>
+        </div>
+      </div>
+      <div class="emp-badge-lbl" style="margin-top:20px;">Employee of the Month</div>
+      <div class="emp-name" id="s12-name">--</div>
+      <div class="emp-role" id="s12-role">--</div>
+      <div class="emp-quote" id="s12-quote">--</div>
+      <div id="s12-accomp"></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="sph10">
+  <div class="fs-photo-wrap">
+    <img id="ph10-img" class="fs-photo-img" src="" alt="Photo Slide 10" style="display:none;" />
+    <div class="fs-photo-placeholder" id="ph10-img-ph">
+      <div class="fs-ph-icon">🖼</div>
+      <div class="fs-ph-text">Photo Slide 10</div>
+      <div class="fs-ph-hint">Upload a photo in ⚙ Setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s13">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Team Celebrations</div>
+    <div class="stitle" style="font-size:42px;margin-bottom:20px;">Anniversaries &amp; <span class="ac">Birthdays</span></div>
+    <div class="celeb-two-col">
+      <!-- Work Anniversaries -->
+      <div class="celeb-big-section">
+        <div class="celeb-big-header">
+          <span class="celeb-big-icon">🏆</span>
+          <span class="celeb-big-title">Work Anniversaries</span>
+        </div>
+        <div id="s13-anniv"></div>
+      </div>
+      <!-- Birthdays -->
+      <div class="celeb-big-section">
+        <div class="celeb-big-header">
+          <span class="celeb-big-icon">🎂</span>
+          <span class="celeb-big-title">Birthdays This Month</span>
+        </div>
+        <div id="s13-bdays"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="slide" id="sann">
+  <div class="stopbar"></div>
+  <div class="sbody">
+    <div class="eyebrow">Firm Updates</div>
+    <div class="stitle" style="font-size:42px;margin-bottom:16px;">Firm <span class="ac">Announcements</span></div>
+    <div class="ann-list" id="sann-list"></div>
+  </div>
+</div>
+
+<div class="slide" id="s-friday">
+  <div class="stopbar" style="background:var(--gold);"></div>
+  <div class="sbody" style="justify-content:center;align-items:center;text-align:center;">
+    <div class="friday-inner">
+      <div class="friday-eyebrow">Every Friday</div>
+      <div class="friday-title" id="friday-title">Theme Day</div>
+      <div class="friday-subtitle" id="friday-theme">🎉 Spirit Friday</div>
+      <div class="friday-desc" id="friday-desc">Show your Moet Law pride! Dress in firm colors and celebrate the week.</div>
+      <div class="friday-date" id="friday-date">--</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /show -->
+</div><!-- /main -->
+
+<div id="pbar"></div>
+<div id="help"><kbd>S</kbd> Slideshow &nbsp;|&nbsp; <kbd>D</kbd> Dashboard &nbsp;|&nbsp; <kbd>→</kbd><kbd>←</kbd> Navigate &nbsp;|&nbsp; <kbd>Space</kbd> Pause &nbsp;|&nbsp; <kbd>C</kbd> Setup</div>
+
+<!-- CONFIG PANEL -->
+<div id="cfg">
+  <div class="cfg-h">⚙ Moet Law — Display Setup</div>
+  <div class="cfg-sub">No coding required. Connect Google Sheets or enter data manually below.</div>
+  <div class="sheets-info"><p><strong>🔗 Paste your Google Sheets CSV URL below, then click Sync Now.</strong> Once connected, the display updates automatically every 2 minutes whenever anyone edits the sheet. To get the URL: open your sheet → File → Share → Publish to web → select MoetData tab → CSV → Publish → copy the link.</p></div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Google Sheets Data Source</div>
+    
+    <div class="url-row">
+      <div class="cf" style="flex:1;"><label>Published CSV URL</label><input type="text" id="cfg-url" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vSYAr6v4DyfwqG0oPqiWcv1bcmids768KtuWb5qRSmkmntGcnwQVg9ePWuKnS2kXFGIOFYcQHU-kbrJ/pub?gid=1479125449&single=true&output=csv" style="font-size:13px;padding:12px 14px;border-color:rgba(187,13,3,.4);"/></div>
+      <button class="fetch-btn" onclick="fetchSheets()" style="padding:12px 22px;font-size:13px;">↻ Sync Now</button>
+    </div>
+    <div class="fstatus" id="fstatus" style="margin-top:8px;">Paste a Google Sheets CSV URL above and click Sync Now. Once connected, the display updates automatically every 2 minutes.</div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Core KPIs — Monthly Numbers</div>
+    <div class="cfg-grid">
+      <div class="cf"><label>New Cases Signed</label><input type="number" id="c-nc" placeholder="28"/></div>
+      <div class="cf"><label>Demands Sent</label><input type="number" id="c-dm" placeholder="42"/></div>
+      <div class="cf"><label>Pre-Lit Settlement Amount</label><input type="text" id="c-stPrelitAmt" placeholder="$1,250,000"/></div>
+      <div class="cf"><label>Litigation Settlement Amount</label><input type="text" id="c-stLitAmt" placeholder="$850,000"/></div>
+      <div class="cf"><label>Settlements Total Amount</label><input type="text" id="c-stAmt" placeholder="$2,100,000"/></div>
+      <div class="cf"><label>Slide Interval (seconds)</label><input type="number" id="c-int" placeholder="15" min="5" max="60"/></div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Monthly Goals</div>
+    <div class="cfg-grid">
+      <div class="cf"><label>Goal — New Cases</label><input type="number" id="c-gnc" placeholder="35"/></div>
+      <div class="cf"><label>Goal — Demands</label><input type="number" id="c-gdm" placeholder="50"/></div>
+      <div class="cf"><label>Goal — Pre-Lit Settlement Amount</label><input type="text" id="c-gstPrelitAmt" placeholder="$2,000,000"/></div>
+      <div class="cf"><label>Goal — Litigation Settlement Amount</label><input type="text" id="c-gstLitAmt" placeholder="$1,500,000"/></div>
+      <div class="cf"><label>Goal — Settlements Total Amount</label><input type="text" id="c-gstAmt" placeholder="$3,000,000"/></div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Team Data</div>
+    <div class="cfg-grid">
+      <div class="cf"><label>Team 1 Name</label><input type="text" id="c-t1n" placeholder="Team Alpha"/></div>
+      <div class="cf"><label>Team 1 Active Cases</label><input type="number" id="c-t1a" placeholder="87"/></div>
+      <div class="cf"><label>Team 1 Demands</label><input type="number" id="c-t1dm" placeholder="18"/></div>
+      <div class="cf"><label>Team 1 Settlement Amount</label><input type="text" id="c-t1sAmt" placeholder="$0"/></div>
+      <div class="cf"><label>Team 1 Goal — Settlement Amount</label><input type="text" id="c-t1gsAmt" placeholder="$0"/></div>
+      <div class="cf"></div>
+      <div class="cf"><label>Team 2 Name</label><input type="text" id="c-t2n" placeholder="Team Beta"/></div>
+      <div class="cf"><label>Team 2 Active Cases</label><input type="number" id="c-t2a" placeholder="74"/></div>
+      <div class="cf"><label>Team 2 Demands</label><input type="number" id="c-t2dm" placeholder="15"/></div>
+      <div class="cf"><label>Team 2 Settlement Amount</label><input type="text" id="c-t2sAmt" placeholder="$0"/></div>
+      <div class="cf"><label>Team 2 Goal — Settlement Amount</label><input type="text" id="c-t2gsAmt" placeholder="$0"/></div>
+      <div class="cf"></div>
+      <div class="cf"><label>Team 3 Name</label><input type="text" id="c-t3n" placeholder="Team Gamma"/></div>
+      <div class="cf"><label>Team 3 Active Cases</label><input type="number" id="c-t3a" placeholder="61"/></div>
+      <div class="cf"><label>Team 3 Demands</label><input type="number" id="c-t3dm" placeholder="12"/></div>
+      <div class="cf"><label>Team 3 Settlement Amount</label><input type="text" id="c-t3sAmt" placeholder="$0"/></div>
+      <div class="cf"><label>Team 3 Goal — Settlement Amount</label><input type="text" id="c-t3gsAmt" placeholder="$0"/></div>
+      <div class="cf"></div>
+      <div class="cf"><label>Team 4 Name</label><input type="text" id="c-t4n" placeholder="Team Delta"/></div>
+      <div class="cf"><label>Team 4 Active Cases</label><input type="number" id="c-t4a" placeholder="55"/></div>
+      <div class="cf"><label>Team 4 Demands</label><input type="number" id="c-t4dm" placeholder="10"/></div>
+      <div class="cf"><label>Team 4 Settlement Amount</label><input type="text" id="c-t4sAmt" placeholder="$0"/></div>
+      <div class="cf"><label>Team 4 Goal — Settlement Amount</label><input type="text" id="c-t4gsAmt" placeholder="$0"/></div>
+      <div class="cf"></div>
+      <div class="cf"><label>Team 5 Name</label><input type="text" id="c-t5n" placeholder="Team Echo"/></div>
+      <div class="cf"><label>Team 5 Active Cases</label><input type="number" id="c-t5a" placeholder="48"/></div>
+      <div class="cf"><label>Team 5 Demands</label><input type="number" id="c-t5dm" placeholder="9"/></div>
+      <div class="cf"><label>Team 5 Settlement Amount</label><input type="text" id="c-t5sAmt" placeholder="$0"/></div>
+      <div class="cf"><label>Team 5 Goal — Settlement Amount</label><input type="text" id="c-t5gsAmt" placeholder="$0"/></div>
+      <div class="cf"></div>
+      <div class="cf"><label>Team 6 Name</label><input type="text" id="c-t6n" placeholder="Team Foxtrot"/></div>
+      <div class="cf"><label>Team 6 Active Cases</label><input type="number" id="c-t6a" placeholder="42"/></div>
+      <div class="cf"><label>Team 6 Demands</label><input type="number" id="c-t6dm" placeholder="8"/></div>
+      <div class="cf"><label>Team 6 Settlement Amount</label><input type="text" id="c-t6sAmt" placeholder="$0"/></div>
+      <div class="cf"><label>Team 6 Goal — Settlement Amount</label><input type="text" id="c-t6gsAmt" placeholder="$0"/></div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Photo Slides (Full-Screen Images)</div>
+    <div class="cfg-grid">
+      <div class="cf">
+        <label>Photo Slide 1 (after Intro)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph1-file" accept="image/*" onchange="handlePhotoUpload('ph1-file','ph1-img','ph1-preview','ph1-img-ph')" />
+          <img id="ph1-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph1-img','ph1-preview','ph1-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 2 (after Performance)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph2-file" accept="image/*" onchange="handlePhotoUpload('ph2-file','ph2-img','ph2-preview','ph2-img-ph')" />
+          <img id="ph2-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph2-img','ph2-preview','ph2-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 3 (after Team Slides)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph3-file" accept="image/*" onchange="handlePhotoUpload('ph3-file','ph3-img','ph3-preview','ph3-img-ph')" />
+          <img id="ph3-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph3-img','ph3-preview','ph3-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 4 (between Performance slides)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph4-file" accept="image/*" onchange="handlePhotoUpload('ph4-file','ph4-img','ph4-preview','ph4-img-ph')" />
+          <img id="ph4-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph4-img','ph4-preview','ph4-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 5 (between Team 1 & 2)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph5-file" accept="image/*" onchange="handlePhotoUpload('ph5-file','ph5-img','ph5-preview','ph5-img-ph')" />
+          <img id="ph5-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph5-img','ph5-preview','ph5-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 6 (between Team 2 & 3)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph6-file" accept="image/*" onchange="handlePhotoUpload('ph6-file','ph6-img','ph6-preview','ph6-img-ph')" />
+          <img id="ph6-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph6-img','ph6-preview','ph6-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 7 (between Team 4 & 5)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph7-file" accept="image/*" onchange="handlePhotoUpload('ph7-file','ph7-img','ph7-preview','ph7-img-ph')" />
+          <img id="ph7-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph7-img','ph7-preview','ph7-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 8 (between Team 5 & 6)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph8-file" accept="image/*" onchange="handlePhotoUpload('ph8-file','ph8-img','ph8-preview','ph8-img-ph')" />
+          <img id="ph8-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph8-img','ph8-preview','ph8-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 9 (before Employee)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph9-file" accept="image/*" onchange="handlePhotoUpload('ph9-file','ph9-img','ph9-preview','ph9-img-ph')" />
+          <img id="ph9-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph9-img','ph9-preview','ph9-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Photo Slide 10 (after Employee)</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="ph10-file" accept="image/*" onchange="handlePhotoUpload('ph10-file','ph10-img','ph10-preview','ph10-img-ph')" />
+          <img id="ph10-preview" class="photo-preview" alt="Preview" />
+          <button class="photo-clear-btn" onclick="clearPhoto('ph10-img','ph10-preview','ph10-img-ph')">✕ Remove Photo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Photo URLs (Shared via Google Sheets)</div>
+    <div style="font-size:12px;color:var(--gm);margin-bottom:14px;line-height:1.8;">
+      Add photo URLs directly in your Google Sheet (column B) next to the key. Photos update automatically on the next sync and are visible to all viewers.<br><br>
+      <strong style="color:var(--teal);">How to get the URL from Google Drive:</strong><br>
+      1. Upload photo to Google Drive → right-click → <strong style="color:#fff;">Share</strong> → Anyone with the link<br>
+      2. Copy the link — it looks like: <code style="color:var(--gm);">https://drive.google.com/file/d/FILE_ID/view</code><br>
+      3. Change it to: <code style="color:var(--gold);">https://drive.google.com/uc?export=view&amp;id=FILE_ID</code><br><br>
+      <strong style="color:#fff;">Sheet keys to use:</strong><br>
+      <code style="color:var(--gold);">emp_photo_url</code> — Employee of the Month<br>
+      <code style="color:var(--gold);">ph1_url</code> through <code style="color:var(--gold);">ph10_url</code> — Photo Slides 1–10
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Employee of the Month — Profile Photo (Local Only)</div>
+    <div class="cf" style="max-width:340px;">
+      <label>Employee Photo</label>
+      <div class="photo-upload-wrap">
+        <input type="file" id="emp-photo-file" accept="image/*" onchange="handlePhotoUpload('emp-photo-file','s12-photo-img','emp-photo-preview','s12-photo-ph')" />
+        <img id="emp-photo-preview" class="photo-preview" style="height:100px;width:100px;border-radius:50%;" alt="Preview" />
+        <button class="photo-clear-btn" onclick="clearPhoto('s12-photo-img','emp-photo-preview','s12-photo-ph')">✕ Remove Photo</button>
+      </div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Employee of the Month</div>
+    <div class="cfg-grid">
+      <div class="cf"><label>Full Name</label><input type="text" id="c-en" placeholder="Maria Rodriguez"/></div>
+      <div class="cf"><label>Title / Role</label><input type="text" id="c-er" placeholder="Case Manager"/></div>
+      <div class="cf" style="grid-column:span 1;"></div>
+      <div class="cf" style="grid-column:1/-1;"><label>Recognition Message</label><textarea id="c-eq" placeholder="Outstanding dedication to clients and the team. Goes above and beyond every single day."></textarea></div>
+      <div class="cf" style="grid-column:1/-1;"><label>Accomplishments (one per line)</label><textarea id="c-ea" placeholder="Maintained 100% client satisfaction rating&#10;Mentored 2 new team members&#10;Led process improvement that reduced case intake time by 20%"></textarea></div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Announcements</div>
+    <div style="font-size:12px;color:var(--gm);margin-bottom:10px;line-height:1.7;">
+      Add key <code style="color:#BB0D03;">announcements</code> in your Google Sheet.<br>
+      Format: <code style="color:rgba(255,255,255,.6);">TYPE|Date|Text||TYPE|Date|Text</code> (use <strong>||</strong> between entries)<br>
+      TYPE options: <code>UPDATE</code>, <code>EVENT</code>, <code>POLICY</code>
+    </div>
+    <div class="cf" style="grid-column:1/-1;">
+      <label>Announcements (one per line: TYPE | Date | Text)</label>
+      <textarea id="c-ann" style="min-height:100px;" placeholder="EVENT | Jun 5 | Team lunch this Friday at noon!&#10;UPDATE | Jun 3 | New workflow launching next week.&#10;POLICY | Jun 1 | Updated client communication protocols."></textarea>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Anniversaries (format: "Name | Detail | Years")</div>
+    <div class="cfg-grid">
+      <div class="cf" style="grid-column:1/-1;"><label>Work Anniversaries (one per line) — also add key <code style="color:#BB0D03;">anniversaries</code> in Google Sheet</label><textarea id="c-anniv" placeholder="John Smith | 5 Year Anniversary | 5 Years&#10;Lisa Chen | 3 Year Anniversary | 3 Years&#10;Robert Davis | 1 Year Anniversary | 1 Year&#10;Maria Lopez | 2 Year Anniversary | 2 Years&#10;James Wilson | 4 Year Anniversary | 4 Years"></textarea></div>
+      <div class="cf" style="grid-column:1/-1;"><label>Birthdays (one per line) — also add key <code style="color:#BB0D03;">birthdays</code> in Google Sheet</label><textarea id="c-bdays" placeholder="Carlos Mendez | Happy Birthday! | Jun 8&#10;Tasha Williams | Happy Birthday! | Jun 14&#10;James Parker | Happy Birthday! | Jun 22&#10;Sofia Reyes | Happy Birthday! | Jun 28&#10;David Kim | Happy Birthday! | Jun 30&#10;Nina Patel | Happy Birthday! | Jun 31"></textarea></div>
+    </div>
+  </div>
+  <div class="cfg-sec">
+    <div class="cfg-sec-title">Anniversary &amp; Birthday Photos</div>
+    <div style="font-size:12px;color:var(--gm);margin-bottom:14px;line-height:1.6;">Upload photos for each person listed above. Photos are saved automatically and persist after page refresh. Add photos in the same order as the names listed above.</div>
+    <div class="cfg-grid">
+      <div class="cf">
+        <label>Anniversary Person 1 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="anniv-0-file" accept="image/*" onchange="handleCelebPhoto('anniv-0-file','anniv-photo-0')" />
+          <img id="anniv-0-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-0','anniv-0-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Anniversary Person 2 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="anniv-1-file" accept="image/*" onchange="handleCelebPhoto('anniv-1-file','anniv-photo-1')" />
+          <img id="anniv-1-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-1','anniv-1-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Anniversary Person 3 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="anniv-2-file" accept="image/*" onchange="handleCelebPhoto('anniv-2-file','anniv-photo-2')" />
+          <img id="anniv-2-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-2','anniv-2-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Anniversary Person 4 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="anniv-3-file" accept="image/*" onchange="handleCelebPhoto('anniv-3-file','anniv-photo-3')" />
+          <img id="anniv-3-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-3','anniv-3-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Anniversary Person 5 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="anniv-4-file" accept="image/*" onchange="handleCelebPhoto('anniv-4-file','anniv-photo-4')" />
+          <img id="anniv-4-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-4','anniv-4-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Birthday Person 1 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="bday-0-file" accept="image/*" onchange="handleCelebPhoto('bday-0-file','bday-photo-0')" />
+          <img id="bday-0-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-0','bday-0-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Birthday Person 2 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="bday-1-file" accept="image/*" onchange="handleCelebPhoto('bday-1-file','bday-photo-1')" />
+          <img id="bday-1-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-1','bday-1-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Birthday Person 3 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="bday-2-file" accept="image/*" onchange="handleCelebPhoto('bday-2-file','bday-photo-2')" />
+          <img id="bday-2-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-2','bday-2-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Birthday Person 4 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="bday-3-file" accept="image/*" onchange="handleCelebPhoto('bday-3-file','bday-photo-3')" />
+          <img id="bday-3-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-3','bday-3-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Birthday Person 5 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="bday-4-file" accept="image/*" onchange="handleCelebPhoto('bday-4-file','bday-photo-4')" />
+          <img id="bday-4-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-4','bday-4-preview')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="cf">
+        <label>Birthday Person 6 Photo</label>
+        <div class="photo-upload-wrap">
+          <input type="file" id="bday-5-file" accept="image/*" onchange="handleCelebPhoto('bday-5-file','bday-photo-5')" />
+          <img id="bday-5-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
+          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-5','bday-5-preview')">✕ Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="cfg-sec">
+    <div class="cfg-sec-title">Friday Theme Day</div>
+    <div class="cfg-grid">
+      <div class="cf"><label>Theme Title (e.g. "Spirit Friday")</label><input type="text" id="c-friday-theme" placeholder="🎉 Spirit Friday"/></div>
+      <div class="cf"><label>Description</label><textarea id="c-friday-desc" placeholder="Show your Moet Law pride! Dress in firm colors and celebrate the week."></textarea></div>
+      <div class="cf"><label>Slide Header (optional override)</label><input type="text" id="c-friday-title" placeholder="Theme Day"/></div>
+    </div>
+  </div>
+  <div class="cfg-row">
+    <button class="cbtn p" onclick="saveCfg()">✓ Save & Apply</button>
+    <button class="cbtn s" onclick="closeCfg()">Cancel</button>
+    <button class="cbtn s" onclick="loadDemo()">Load Demo Data</button>
+  </div>
+</div>
+
+<script>
+// ── HARDCODED SHEET URL — anyone opening this link gets live data ──────────
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSYAr6v4DyfwqG0oPqiWcv1bcmids768KtuWb5qRSmkmntGcnwQVg9ePWuKnS2kXFGIOFYcQHU-kbrJ/pub?gid=1479125449&single=true&output=csv';
+
+const D={
+  nc:28,dm:42,stAmt:'$0',
+    stPrelitAmt:'$0',stLitAmt:'$0',gstAmt:'$0',gstPrelitAmt:'$0',gstLitAmt:'$0',
+  gnc:35,gdm:50,interval:15,
+  teams:[
+    {name:'Team Alpha',active:87,demands:18,settleAmt:'$0',goalSettleAmt:'$0'},
+    {name:'Team Beta',active:74,demands:15,settleAmt:'$0',goalSettleAmt:'$0'},
+    {name:'Team Gamma',active:61,demands:12,settleAmt:'$0',goalSettleAmt:'$0'},
+    {name:'Team Delta',active:55,demands:10,settleAmt:'$0',goalSettleAmt:'$0'},
+    {name:'Team Echo',active:48,demands:9,settleAmt:'$0',goalSettleAmt:'$0'},
+    {name:'Team Foxtrot',active:42,demands:8,settleAmt:'$0',goalSettleAmt:'$0'},
+  ],
+  en:'Maria Rodriguez',er:'Case Manager',
+  eq:'Outstanding dedication to clients and the team. Goes above and beyond every single day.',
+  ea:['Maintained 100% client satisfaction rating','Mentored 2 new team members','Led process improvement reducing case intake time by 20%'],
+  anniversaries:[
+    {name:'John Smith',detail:'5 Year Anniversary',extra:'5 Years'},
+    {name:'Lisa Chen',detail:'3 Year Anniversary',extra:'3 Years'},
+    {name:'Robert Davis',detail:'1 Year Anniversary',extra:'1 Year'},
+  ],
+  birthdays:[
+    {name:'Carlos Mendez',detail:'Happy Birthday!',extra:'Jun 8'},
+    {name:'Tasha Williams',detail:'Happy Birthday!',extra:'Jun 14'},
+  ],
+  announcements:[
+    {type:'EVENT',date:'Jun 5',text:'Team lunch this Friday at noon — all staff welcome!'},
+    {type:'UPDATE',date:'Jun 3',text:'New case management workflow launching next week. Training sessions scheduled.'},
+    {type:'POLICY',date:'Jun 1',text:'Updated client communication protocols now in effect. See employee handbook.'},
+    {type:'EVENT',date:'Jun 15',text:'Firm anniversary celebration — watch for details!'},
+  ],
+  trainings:[
+    {cat:'REMINDER',title:'Demand Deadlines',desc:'Ensure all demands are submitted within 30 days of MMI. Flag cases approaching deadline.'},
+    {cat:'SERVICE',title:'Client Communication',desc:'Follow up with clients every 2 weeks minimum. Document all contact in CasePeer.'},
+    {cat:'COMPLIANCE',title:'HIPAA Records',desc:'Medical records requests must be logged within 24 hours of receipt.'},
+    {cat:'REMINDER',title:'CasePeer Updates',desc:'Update case status daily. Outdated records affect firm-wide reporting.'},
+    {cat:'SERVICE',title:'Intake Quality',desc:'Complete all intake fields at signing. Missing info causes downstream delays.'},
+    {cat:'COMPLIANCE',title:'Statute of Limitations',desc:'Review all active cases for upcoming SOL deadlines every Monday morning.'},
+  ],
+  fridayTheme:'🎉 Spirit Friday',
+  fridayDesc:'Show your Moet Law pride! Dress in firm colors and celebrate the week.',
+  fridayTitle:'Theme Day',
+  founding:'Founded with a single promise: to stand with injured clients and fight relentlessly for the compensation they deserve. Moet Law has grown into a powerhouse personal injury firm built on trust, results, and unwavering advocacy.',
+};
+
+let data={...D}, mode='dash', curSlide=0;
+const TOTAL=25;
+let slideTimer=null, paused=false, charts={};
+
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const mos=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('date-disp').textContent=days[n.getDay()]+', '+mos[n.getMonth()]+' '+n.getDate()+', '+n.getFullYear();
+  const el=document.getElementById('s1-date');
+  if(el) el.textContent=days[n.getDay()]+' · '+mos[n.getMonth()]+' '+n.getDate()+', '+n.getFullYear();
+}
+setInterval(tick,1000); tick();
+
+function setMode(m){
+  mode=m;
+  document.getElementById('dash').className=m==='dash'?'on':'';
+  document.getElementById('show').className=m==='show'?'on':'';
+  document.querySelectorAll('.mbtn').forEach((b,i)=>b.classList.toggle('on',i===(m==='dash'?0:1)));
+  document.getElementById('nav-dots').style.display=m==='show'?'flex':'none';
+  document.getElementById('slide-counter').style.display=m==='show'?'block':'none';
+  if(m==='show') startShow(); else stopShow();
+}
+
+function buildDots(){
+  const nc=document.getElementById('nav-dots');
+  nc.innerHTML='';
+  for(let i=0;i<TOTAL;i++){
+    const b=document.createElement('button');
+    b.className='dot'+(i===curSlide?' active':'');
+    b.setAttribute('aria-label','Slide '+(i+1));
+    b.onclick=()=>goTo(i);
+    nc.appendChild(b);
+  }
+  document.getElementById('slide-counter').textContent=(curSlide+1)+' / '+TOTAL;
+}
+
+function goTo(idx){
+  const slides=document.querySelectorAll('.slide');
+  slides[curSlide].classList.remove('on');
+  slides[curSlide].classList.add('out');
+  const prev=curSlide; curSlide=idx;
+  setTimeout(()=>slides[prev].classList.remove('out'),680);
+  slides[curSlide].classList.add('on');
+  buildDots(); startProgress();
+  // Small delay so slide transition finishes before chart renders
+  setTimeout(()=>{ if(typeof renderSlideCharts==='function') renderSlideCharts(); }, 100);
+}
+
+function nextSlide(){if(!paused) goTo((curSlide+1)%TOTAL);}
+
+function startShow(){
+  stopShow();
+  document.querySelectorAll('.slide').forEach((s,i)=>{s.classList.remove('on','out');if(i===curSlide)s.classList.add('on');});
+  buildDots(); startProgress();
+  slideTimer=setInterval(nextSlide,(data.interval||15)*1000);
+  renderSlideCharts();
+}
+function stopShow(){
+  clearInterval(slideTimer);
+  const pb=document.getElementById('pbar');
+  pb.style.transition='none'; pb.style.width='0';
+}
+function startProgress(){
+  const pb=document.getElementById('pbar');
+  pb.style.transition='none'; pb.style.width='0';
+  setTimeout(()=>{pb.style.transition='width '+(data.interval||15)+'s linear'; pb.style.width='100%';},60);
+}
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('cfg').classList.contains('on')) return;
+  if(e.key==='s'||e.key==='S') setMode('show');
+  if(e.key==='d'||e.key==='D') setMode('dash');
+  if(e.key==='c'||e.key==='C') openCfg();
+  if(e.key===' '){e.preventDefault();paused=!paused;}
+  if(e.key==='ArrowRight'&&mode==='show') goTo((curSlide+1)%TOTAL);
+  if(e.key==='ArrowLeft'&&mode==='show') goTo((curSlide-1+TOTAL)%TOTAL);
+  if(e.key==='Escape') closeCfg();
+});
+
+function pct(actual,goal){return Math.min(100,Math.round((+actual||0)/(+goal||1)*100));}
+
+function applyData(d){
+  data = d;
+  console.log('applyData called — nc:', d.nc, 'dm:', d.dm, 'teams:', d.teams && d.teams[0] && d.teams[0].name);
+
+  // ── Dashboard KPIs ──────────────────────────────────────────────────────
+  setTxt('d-nc', d.nc);
+  setTxt('d-dm', d.dm);
+
+  // Dashboard team table — only fields that exist
+  const teams = d.teams || D.teams;
+  document.getElementById('d-team-tbody').innerHTML = teams.map(t => `
+    <tr>
+      <td><span class="tnm">${t.name||''}</span></td>
+      <td style="color:var(--teal)">${t.active||0}</td>
+      <td style="color:var(--gold);font-weight:900;">${t.settleAmt||'$0'}</td>
+    </tr>`).join('');
+
+  // Dashboard team table header fix — show Amount not Settled count
+  const tHead = document.querySelector('#dash .ttbl thead tr');
+  if(tHead) tHead.innerHTML = '<th>Team</th><th>Active</th><th>Settled $</th>';
+
+  // ── Slide 1 ──────────────────────────────────────────────────────────────
+  setTxt('s1-founding', d.founding || D.founding);
+
+  // ── Slides 2 & 3 — Cases and Demands vs Goal ─────────────────────────────
+  setTxt('s2-actual', d.nc);   setTxt('s2-goal', d.gnc);
+  setTxt('s3-actual', d.dm);   setTxt('s3-goal', d.gdm);
+
+  // ── Slides 4a & 4b — Settlement dollar amounts ───────────────────────────
+  setTxt('s4a-amount',      d.stPrelitAmt  || '$0');
+  setTxt('s4a-amount-goal', d.gstPrelitAmt || '$0');
+  setTxt('s4b-amount',      d.stLitAmt     || '$0');
+  setTxt('s4b-amount-goal', d.gstLitAmt    || '$0');
+
+  // ── Team slides ───────────────────────────────────────────────────────────
+  function _fillTeam(sid, team){
+    if(!team) return;
+    setTxt(sid+'-team-name',  team.name          || '');
+    setTxt(sid+'-active',     team.active         || 0);
+    setTxt(sid+'-demands',    team.demands        || 0);
+    setTxt(sid+'-settle-amt', team.settleAmt      || '$0');
+    setTxt(sid+'-goal-s-amt', team.goalSettleAmt  || '$0');
+  }
+  _fillTeam('s6',  teams[0]);
+  _fillTeam('s7',  teams[1]);
+  _fillTeam('s8',  teams[2]);
+  _fillTeam('s6b', teams[3]);
+  _fillTeam('s6c', teams[4]);
+  _fillTeam('s6d', teams[5]);
+
+  // ── Slide 12 — Employee ───────────────────────────────────────────────────
+  setTxt('s12-name',  d.en || '');
+  setTxt('s12-role',  d.er || '');
+  setTxt('s12-quote', d.eq || '');
+  const aw = document.getElementById('s12-accomp');
+  if(aw && d.ea && d.ea.length){
+    aw.innerHTML = '<div class="accomp-section-lbl">Accomplishments</div>' +
+      d.ea.slice(0,4).map(a =>
+        `<div class="accomp-item"><div class="accomp-dot"></div><div class="accomp-txt">${a}</div></div>`
+      ).join('');
+  }
+
+  // ── Slide 13 — Celebrations ───────────────────────────────────────────────
+  const annivEl = document.getElementById('s13-anniv');
+  if(annivEl) annivEl.innerHTML = (d.anniversaries||[]).map((a,i) => {
+    const pid = 'anniv-photo-'+i;
+    const stored = _getStoredPhoto(pid);
+    const img = stored
+      ? `<img src="${stored}" class="celeb-circle-img" alt="${a.name||''}"/>`
+      : `<div class="celeb-circle-ph anniv"><span>👤</span></div>`;
+    return `<div class="celeb-big-item">
+      <div class="celeb-photo-circle anniv" id="${pid}-circle">${img}</div>
+      <div><div class="celeb-big-name">${a.name||''}</div><div class="celeb-big-detail">${a.detail||''}</div></div>
+      <div class="celeb-big-badge anniv">${a.extra||''}</div>
+    </div>`;
+  }).join('');
+
+  const bdayEl = document.getElementById('s13-bdays');
+  if(bdayEl) bdayEl.innerHTML = (d.birthdays||[]).map((b,i) => {
+    const pid = 'bday-photo-'+i;
+    const stored = _getStoredPhoto(pid);
+    const img = stored
+      ? `<img src="${stored}" class="celeb-circle-img" alt="${b.name||''}"/>`
+      : `<div class="celeb-circle-ph bday"><span>👤</span></div>`;
+    return `<div class="celeb-big-item">
+      <div class="celeb-photo-circle bday" id="${pid}-circle">${img}</div>
+      <div><div class="celeb-big-name">${b.name||''}</div><div class="celeb-big-detail">${b.detail||''}</div></div>
+      <div class="celeb-big-badge bday">${b.extra||''}</div>
+    </div>`;
+  }).join('');
+
+  // ── Announcements slide ─────────────────────────────────────────────────────
+  const annEl = document.getElementById('sann-list');
+  if(annEl){
+    const clrs = {EVENT:'rgba(187,13,3,.2)',UPDATE:'rgba(187,13,3,.15)',POLICY:'rgba(187,13,3,.1)'};
+    const icons = {EVENT:'📅',UPDATE:'📢',POLICY:'📋'};
+    annEl.innerHTML = (d.announcements||[]).slice(0,5).map(a=>`
+      <div class="ann-item">
+        <div class="ann-icon-wrap red">${icons[a.type]||'📢'}</div>
+        <div style="flex:1;"><div class="ann-text">${a.text||''}</div><div class="ann-date">${a.date||''}</div></div>
+        <div class="ann-tag ${a.type||'UPDATE'}">${a.type||'UPDATE'}</div>
+      </div>`).join('');
+  }
+
+  // ── Friday Theme Day ──────────────────────────────────────────────────────
+  setTxt('friday-theme', d.fridayTheme || D.fridayTheme || '🎉 Spirit Friday');
+  setTxt('friday-desc',  d.fridayDesc  || D.fridayDesc  || '');
+  setTxt('friday-title', d.fridayTitle || D.fridayTitle || 'Theme Day');
+
+  // ── Photo slides — apply URLs from sheet (shared across all viewers) ───────
+  _applyPhotoUrl('ph1-img',  'ph1-img-ph',  d.ph1Url);
+  _applyPhotoUrl('ph2-img',  'ph2-img-ph',  d.ph2Url);
+  _applyPhotoUrl('ph3-img',  'ph3-img-ph',  d.ph3Url);
+  _applyPhotoUrl('ph4-img',  'ph4-img-ph',  d.ph4Url);
+  _applyPhotoUrl('ph5-img',  'ph5-img-ph',  d.ph5Url);
+  _applyPhotoUrl('ph6-img',  'ph6-img-ph',  d.ph6Url);
+  _applyPhotoUrl('ph7-img',  'ph7-img-ph',  d.ph7Url);
+  _applyPhotoUrl('ph8-img',  'ph8-img-ph',  d.ph8Url);
+  _applyPhotoUrl('ph9-img',  'ph9-img-ph',  d.ph9Url);
+  _applyPhotoUrl('ph10-img', 'ph10-img-ph', d.ph10Url);
+  // Employee photo
+  _applyPhotoUrl('s12-photo-img', 's12-photo-ph', d.empPhotoUrl);
+
+  // ── Re-render charts ────────────────────────────────────────────────────────
+  renderDashCharts(d);
+  // Render current slide charts immediately
+  if(typeof renderSlideCharts === 'function') renderSlideCharts();
+  // Pre-render all slide charts so they're ready when slides appear
+  if(mode === 'show'){
+    const saved = curSlide;
+    const slideIds = Array.from(document.querySelectorAll('#show .slide')).map(s=>s.id);
+    slideIds.forEach((sid, i) => {
+      curSlide = i;
+      if(typeof renderSlideCharts === 'function') renderSlideCharts();
+    });
+    curSlide = saved;
+  }
+}
+
+function _applyPhotoUrl(imgId, phId, url){
+  const img = document.getElementById(imgId);
+  const ph  = document.getElementById(phId);
+  if(!img) return;
+  if(url && url.trim() && url.startsWith('http')){
+    img.src = url;
+    img.style.display = 'block';
+    if(ph) ph.style.display = 'none';
+  }
+}
+
+function buildGoalBars(items,big=false){
+  return items.map(g=>{
+    const p=Math.min(100,Math.round((+g.actual||0)/(+g.goal||1)*100));
+    if(big) return `<div class="bg-item"><div class="bg-row"><span class="bg-name">${g.name}</span><span class="bg-right"><span class="bg-nums">${g.actual} / ${g.goal}</span><span class="bg-pct"> ${p}%</span></span></div><div class="bg-track"><div class="bg-fill ${g.cls||''}" style="width:${p}%"></div></div></div>`;
+    return `<div class="gb-item"><div class="gb-row"><span class="gb-name">${g.name}</span><span class="gb-nums">${g.actual}/${g.goal}</span></div><div class="gb-track"><div class="gb-fill ${g.cls||''}" style="width:${p}%"></div></div></div>`;
+  }).join('');
+}
+
+function setTxt(id,v){const e=document.getElementById(id);if(e)e.textContent=v??'--';}
+function setDelta(id,v){
+  const e=document.getElementById(id);if(!e)return;
+  const s=String(v||'—');e.textContent=s;e.className='delta';
+  if(s.startsWith('+'))e.classList.add('up');else if(s.startsWith('-'))e.classList.add('dn');else e.classList.add('nt');
+}
+
+// CHARTS
+const CC={red:'#BB0D03',teal:'#BB0D03',gold:'#BB0D03',red2:'rgba(187,13,3,.85)',teal2:'rgba(187,13,3,.85)',gold2:'rgba(187,13,3,.85)',muted:'rgba(255,255,255,.42)',grid:'rgba(255,255,255,.05)'};
+const FNT={family:"'League Spartan',sans-serif",size:11};
+
+function mkChart(id,type,labels,datasets,opts={}){
+  const c=document.getElementById(id);if(!c)return;
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+  charts[id]=new Chart(c,{type,data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},...(opts.plugins||{})},
+    scales:type==='doughnut'||type==='pie'?{}:{
+      x:{ticks:{color:CC.muted,font:FNT,autoSkip:false},grid:{color:CC.grid},...(opts.sx||{})},
+      y:{ticks:{color:CC.muted,font:FNT},grid:{color:CC.grid},beginAtZero:true,...(opts.sy||{})},
+    },...(opts.extra||{})
+  }});
+}
+
+function vsGoalChart(id,actual,goal,label,color){
+  mkChart(id,'bar',['Actual','Monthly Goal'],
+    [{data:[+actual||0,+goal||0],backgroundColor:[color,'rgba(255,255,255,.12)'],borderRadius:6,borderSkipped:false}]
+  );
+}
+
+function teamVsGoalChart(id,actual,goal,label,color){
+  mkChart(id,'bar',[label,'Goal'],
+    [{data:[+actual||0,+goal||0],backgroundColor:[color,'rgba(255,255,255,.1)'],borderRadius:6,borderSkipped:false}]
+  );
+}
+
+function renderDashCharts(d){
+
+  mkChart('c-ta','bar',d.teams.map(t=>t.name),[{data:d.teams.map(t=>+t.active||0),backgroundColor:[CC.red2,CC.teal2,CC.gold2],borderRadius:5}]);
+  mkChart('c-ts','bar',d.teams.map(t=>t.name),[{data:d.teams.map(t=>parseFloat((t.settleAmt||'0').replace(/[^0-9.]/g,''))||0),backgroundColor:[CC.red2,CC.teal2,CC.gold2],borderRadius:5}]);
+}
+
+function renderSlideCharts(){
+  if(mode!=='show') return;
+  const d=data;
+  const si=curSlide;
+  const slideIds = Array.from(document.querySelectorAll('#show .slide')).map(s=>s.id);
+  const idx = (id) => slideIds.indexOf(id);
+
+  // Cases Signed vs Goal
+  if(si===idx('s2')) vsGoalChart('c-s2',d.nc,d.gnc,'Cases Signed',CC.red2);
+  // Demands Sent vs Goal
+  if(si===idx('s3')) vsGoalChart('c-s3',d.dm,d.gdm,'Demands Sent',CC.teal2);
+  // Pre-Lit Settlement Amount vs Goal
+  if(si===idx('s4a')){
+    const act=parseFloat((d.stPrelitAmt||'0').replace(/[^0-9.]/g,''))||0;
+    const goal=parseFloat((d.gstPrelitAmt||'0').replace(/[^0-9.]/g,''))||0;
+    vsGoalChart('c-s4a',act,goal,'Pre-Lit Amount',CC.gold2);
+  }
+  // Litigation Settlement Amount vs Goal
+  if(si===idx('s4b')){
+    const act=parseFloat((d.stLitAmt||'0').replace(/[^0-9.]/g,''))||0;
+    const goal=parseFloat((d.gstLitAmt||'0').replace(/[^0-9.]/g,''))||0;
+    vsGoalChart('c-s4b',act,goal,'Lit Amount',CC.gold2);
+  }
+  // Team slides
+  function renderTeamBySlide(sid,team){
+    if(!team) return;
+    mkChart('c-'+sid+'-sa','bar',['Settlement Amt','Goal Amt'],
+      [{data:[parseFloat((team.settleAmt||'0').replace(/[^0-9.]/g,'')),
+              parseFloat((team.goalSettleAmt||'0').replace(/[^0-9.]/g,''))],
+        backgroundColor:['#BB0D03','rgba(255,255,255,.12)'],borderRadius:6,borderSkipped:false}]
+    );
+  }
+  const t=d.teams||D.teams;
+  if(si===idx('s6'))  renderTeamBySlide('s6',t[0]);
+  if(si===idx('s7'))  renderTeamBySlide('s7',t[1]);
+  if(si===idx('s8'))  renderTeamBySlide('s8',t[2]);
+  if(si===idx('s6b')) renderTeamBySlide('s6b',t[3]);
+  if(si===idx('s6c')) renderTeamBySlide('s6c',t[4]);
+  if(si===idx('s6d')) renderTeamBySlide('s6d',t[5]);
+}
+
+// CONFIG
+function openCfg(){document.getElementById('cfg').classList.add('on');populateCfg();}
+function closeCfg(){document.getElementById('cfg').classList.remove('on');}
+
+function populateCfg(){
+  const d=data;
+  const t=d.teams||D.teams;
+  // Core KPIs
+  sv('c-nc',d.nc); sv('c-dm',d.dm); sv('c-int',d.interval);
+  sv('c-stAmt',d.stAmt||'$0'); sv('c-stPrelitAmt',d.stPrelitAmt||'$0'); sv('c-stLitAmt',d.stLitAmt||'$0');
+  // Monthly Goals
+  sv('c-gnc',d.gnc); sv('c-gdm',d.gdm);
+  sv('c-gstAmt',d.gstAmt||'$0'); sv('c-gstPrelitAmt',d.gstPrelitAmt||'$0'); sv('c-gstLitAmt',d.gstLitAmt||'$0');
+  // Teams
+  for(let i=0;i<6;i++){
+    const n=i+1, tm=t[i]||{};
+    sv('c-t'+n+'n',tm.name); sv('c-t'+n+'a',tm.active||0); sv('c-t'+n+'dm',tm.demands||0);
+    sv('c-t'+n+'sAmt',tm.settleAmt||'$0'); sv('c-t'+n+'gsAmt',tm.goalSettleAmt||'$0');
+  }
+  // Employee
+  sv('c-en',d.en); sv('c-er',d.er); sv('c-eq',d.eq); sv('c-ea',(d.ea||[]).join('\n'));
+  // Celebrations
+  sv('c-anniv',(d.anniversaries||[]).map(a=>`${a.name} | ${a.detail} | ${a.extra}`).join('\n'));
+  sv('c-bdays',(d.birthdays||[]).map(b=>`${b.name} | ${b.detail} | ${b.extra}`).join('\n'));
+  // Announcements & training
+  sv('c-ann',(d.announcements||[]).map(a=>`${a.type} | ${a.date} | ${a.text}`).join('\n'));
+  sv('c-train',(d.trainings||[]).map(t=>`${t.cat} | ${t.title} | ${t.desc}`).join('\n'));
+  // Friday
+  sv('c-friday-theme',d.fridayTheme); sv('c-friday-desc',d.fridayDesc); sv('c-friday-title',d.fridayTitle);
+}
+
+function sv(id,val){const e=document.getElementById(id);if(e&&val!==undefined&&val!==null)e.value=val;}
+function gv(id,fb){const e=document.getElementById(id);return e&&e.value.trim()?e.value.trim():fb;}
+function pl3(raw){return(raw||'').split('\n').filter(l=>l.trim()).map(l=>{const p=l.split('|').map(s=>s.trim());return{f0:p[0]||'',f1:p[1]||'',f2:p[2]||l};});}
+function pcsv(r){return(r||'').split(',').map(v=>v.trim()).filter(Boolean);}
+function pcsvn(r){return(r||'').split(',').map(v=>parseInt(v.trim())||0);}
+
+function saveCfg(){
+  const interval=Math.max(5,Math.min(60,parseInt(gv('c-int','15'))||15));
+  const nd={
+    nc:gv('c-nc',D.nc),dm:gv('c-dm',D.dm),
+    gnc:gv('c-gnc',D.gnc),gdm:gv('c-gdm',D.gdm),gstAmt:gv('c-gstAmt','$0'),gstPrelitAmt:gv('c-gstPrelitAmt','$0'),gstLitAmt:gv('c-gstLitAmt','$0'),interval,
+    teams:[
+      {name:gv('c-t1n','Team Alpha'),active:gv('c-t1a',87),demands:gv('c-t1dm',0),settleAmt:gv('c-t1sAmt','$0'),goalSettleAmt:gv('c-t1gsAmt','$0')},
+      {name:gv('c-t2n','Team Beta'),active:gv('c-t2a',74),demands:gv('c-t2dm',0),settleAmt:gv('c-t2sAmt','$0'),goalSettleAmt:gv('c-t2gsAmt','$0')},
+      {name:gv('c-t3n','Team Gamma'),active:gv('c-t3a',61),demands:gv('c-t3dm',0),settleAmt:gv('c-t3sAmt','$0'),goalSettleAmt:gv('c-t3gsAmt','$0')},
+      {name:gv('c-t4n','Team Delta'),active:gv('c-t4a',55),demands:gv('c-t4dm',0),settleAmt:gv('c-t4sAmt','$0'),goalSettleAmt:gv('c-t4gsAmt','$0')},
+      {name:gv('c-t5n','Team Echo'),active:gv('c-t5a',48),demands:gv('c-t5dm',0),settleAmt:gv('c-t5sAmt','$0'),goalSettleAmt:gv('c-t5gsAmt','$0')},
+      {name:gv('c-t6n','Team Foxtrot'),active:gv('c-t6a',42),demands:gv('c-t6dm',0),settleAmt:gv('c-t6sAmt','$0'),goalSettleAmt:gv('c-t6gsAmt','$0')},
+    ],
+    en:gv('c-en',D.en),er:gv('c-er',D.er),eq:gv('c-eq',D.eq),
+    ea:gv('c-ea','').split('\n').filter(l=>l.trim()),
+    anniversaries:pl3(gv('c-anniv','')).map(r=>({name:r.f0,detail:r.f1,extra:r.f2})),
+    birthdays:pl3(gv('c-bdays','')).map(r=>({name:r.f0,detail:r.f1,extra:r.f2})),
+    announcements:pl3(gv('c-ann','')).map(r=>({type:r.f0.toUpperCase(),date:r.f1,text:r.f2})),
+    announcements: (gv('c-ann','')||'').split('\n').filter(l=>l.trim()).map(l=>{
+      const p=l.split('|').map(s=>s.trim());
+      return {type:(p[0]||'UPDATE').toUpperCase(),date:p[1]||'',text:p[2]||l};
+    }).filter(a=>a.text),
+    trainings:pl3(gv('c-train','')).map(r=>({cat:r.f0.toUpperCase(),title:r.f1,desc:r.f2})),
+    fridayTheme:gv('c-friday-theme',D.fridayTheme),fridayDesc:gv('c-friday-desc',D.fridayDesc),fridayTitle:gv('c-friday-title',D.fridayTitle),
+  };
+  try{localStorage.setItem('moet-data',JSON.stringify(nd));}catch(e){}
+  applyData(nd); closeCfg();
+  if(mode==='show'){stopShow();startShow();}
+}
+
+function loadDemo(){
+  const d=D;
+  sv('c-nc',d.nc); sv('c-dm',d.dm); sv('c-int',d.interval||15);
+  sv('c-stAmt',d.stAmt||'$0'); sv('c-stPrelitAmt',d.stPrelitAmt||'$0'); sv('c-stLitAmt',d.stLitAmt||'$0');
+  sv('c-gnc',d.gnc); sv('c-gdm',d.gdm);
+  sv('c-gstAmt',d.gstAmt||'$0'); sv('c-gstPrelitAmt',d.gstPrelitAmt||'$0'); sv('c-gstLitAmt',d.gstLitAmt||'$0');
+  const teams=[
+    ['Team Alpha',87,18,'$0','$0'],['Team Beta',74,15,'$0','$0'],['Team Gamma',61,12,'$0','$0'],
+    ['Team Delta',55,10,'$0','$0'],['Team Echo',48,9,'$0','$0'],['Team Foxtrot',42,8,'$0','$0']
+  ];
+  teams.forEach((t,i)=>{
+    const n=i+1;
+    sv('c-t'+n+'n',t[0]); sv('c-t'+n+'a',t[1]); sv('c-t'+n+'dm',t[2]);
+    sv('c-t'+n+'sAmt',t[3]); sv('c-t'+n+'gsAmt',t[4]);
+  });
+  sv('c-en',d.en); sv('c-er',d.er); sv('c-eq',d.eq); sv('c-ea',d.ea.join('\n'));
+  sv('c-anniv',d.anniversaries.map(a=>`${a.name} | ${a.detail} | ${a.extra}`).join('\n'));
+  sv('c-bdays',d.birthdays.map(b=>`${b.name} | ${b.detail} | ${b.extra}`).join('\n'));
+  sv('c-ann',d.announcements.map(a=>`${a.type} | ${a.date} | ${a.text}`).join('\n'));
+  sv('c-train',d.trainings.map(t=>`${t.cat} | ${t.title} | ${t.desc}`).join('\n'));
+  sv('c-friday-theme',d.fridayTheme); sv('c-friday-desc',d.fridayDesc); sv('c-friday-title',d.fridayTitle);
+}
+
+async function fetchAndApply(silent=false){
+  const urlEl = document.getElementById('cfg-url');
+  const url = (typeof _getSheetUrl === 'function' ? _getSheetUrl() : (urlEl ? urlEl.value.trim() : ''));
+  if(!url) return;
+  const fs = document.getElementById('fstatus');
+  if(fs && !silent){ fs.textContent='↻ Connecting to Google Sheets…'; fs.className='fstatus'; }
+
+  const cb = Date.now();
+
+  // Extract sheet ID from published URL for direct API access
+  // Published URL format: .../spreadsheets/d/e/PUBID/pub?gid=GID&...
+  // We'll try fetching via multiple methods to bypass all caches
+
+  async function tryFetch(fetchUrl, label){
+    try {
+      const r = await fetch(fetchUrl);
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const t = await r.text();
+      if(t && t.length > 10) return t;
+      throw new Error('Empty response');
+    } catch(e) {
+      console.warn(label + ' failed:', e.message);
+      throw e;
+    }
+  }
+
+  // Build fetch URLs — cache:no-store forces fresh fetch
+  const freshUrl = url + (url.includes('?') ? '&' : '?') + 'bust=' + cb;
+  const attempts = [
+    // 1. corsproxy with no-store
+    ['corsproxy.io', 'https://corsproxy.io/?' + encodeURIComponent(freshUrl)],
+    // 2. allorigins with bust param  
+    ['allorigins', 'https://api.allorigins.win/raw?url=' + encodeURIComponent(freshUrl)],
+    // 3. corsproxy with original URL + bust in proxy param
+    ['corsproxy-v2', 'https://corsproxy.io/?' + encodeURIComponent(url) + '&_t=' + cb],
+    // 4. codetabs
+    ['codetabs', 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(freshUrl)],
+    // 5. direct
+    ['direct', freshUrl],
+  ];
+
+  let txt = '';
+  let lastErr = '';
+  for(let i = 0; i < attempts.length; i++){
+    const [label, fetchUrl] = attempts[i];
+    if(fs && !silent) fs.textContent = '↻ Connecting (' + label + ')…';
+    try {
+      txt = await tryFetch(fetchUrl, label);
+      console.log('SUCCESS via', label, '— first 100 chars:', txt.slice(0,100));
+      break;
+    } catch(e) {
+      lastErr = e.message;
+    }
+  }
+
+  if(!txt){
+    const msg = '✗ Could not connect. Error: ' + lastErr;
+    if(fs && !silent){ fs.textContent = msg; fs.className = 'fstatus err'; }
+    console.error(msg);
+    return;
+  }
+
+  try{
+
+    // Parse CSV — properly handle key,value,notes (3 columns)
+    const kv = {};
+    txt.split('\n').forEach(row => {
+      row = row.trim();
+      if(!row) return;
+      // Split into columns respecting quoted values
+      const cols = [];
+      let cur = '', inQ = false;
+      for(let i = 0; i < row.length; i++){
+        const ch = row[i];
+        if(ch === '"') { inQ = !inQ; }
+        else if(ch === ',' && !inQ) { cols.push(cur.trim().replace(/^"|"$/g,'')); cur = ''; }
+        else { cur += ch; }
+      }
+      cols.push(cur.trim().replace(/^"|"$/g,''));
+      const k = (cols[0]||'').trim();
+      const v = (cols[1]||'').trim(); // ONLY column B — ignore column C (notes)
+      // Skip header and comment rows
+      if(!k || k === 'key' || k.startsWith('#')) return;
+      kv[k] = v;
+    });
+
+    console.log('=== SHEET DEBUG ===');
+    console.log('Raw CSV first 500 chars:', txt.slice(0,500));
+    console.log('Sheet keys loaded:', Object.keys(kv));
+    console.log('PARSED VALUES — nc:', kv.nc, '(type:', typeof kv.nc, ') | dm:', kv.dm, '| t1n:', kv.t1n);
+    console.log('===================');
+
+    // Helper — use sheet value if key exists, otherwise fall back
+    const get = (key, fallback) => kv.hasOwnProperty(key) ? kv[key] : fallback;
+    const getN = (key, fallback) => kv.hasOwnProperty(key) ? (+kv[key] || 0) : fallback;
+
+    const nd = {
+      nc:           getN('nc',           data.nc  || D.nc),
+      dm:           getN('dm',           data.dm  || D.dm),
+      stAmt:        get('stAmt',         data.stAmt      || '$0'),
+      stPrelitAmt:  get('stPrelitAmt',   data.stPrelitAmt|| '$0'),
+      stLitAmt:     get('stLitAmt',      data.stLitAmt   || '$0'),
+      gnc:          getN('gnc',          data.gnc || D.gnc),
+      gdm:          getN('gdm',          data.gdm || D.gdm),
+      gstAmt:       get('gstAmt',        data.gstAmt      || '$0'),
+      gstPrelitAmt: get('gstPrelitAmt',  data.gstPrelitAmt|| '$0'),
+      gstLitAmt:    get('gstLitAmt',     data.gstLitAmt   || '$0'),
+      interval:     getN('interval',     data.interval || 15),
+      teams: D.teams.map((dt, i) => {
+        const n = i + 1;
+        // Always prefer sheet value; fall back to previously saved data, then defaults
+        const prev = (data.teams && data.teams[i]) || dt;
+        return {
+          name:          get('t'+n+'n',    prev.name          || dt.name),
+          active:        getN('t'+n+'a',   prev.active        || 0),
+          demands:       getN('t'+n+'dm',  prev.demands       || 0),
+          settleAmt:     get('t'+n+'sAmt', prev.settleAmt     || '$0'),
+          goalSettleAmt: get('t'+n+'gsAmt',prev.goalSettleAmt || '$0'),
+        };
+      }),
+      en: get('emp_name',    data.en || D.en),
+      er: get('emp_role',    data.er || D.er),
+      eq: get('emp_quote',   data.eq || D.eq),
+      ea: kv.emp_accomplishments ? kv.emp_accomplishments.split('|').map(s=>s.trim()).filter(Boolean) : (data.ea || D.ea),
+      // Photo URLs from sheet — shared across all viewers
+      empPhotoUrl: get('emp_photo_url', data.empPhotoUrl || ''),
+      ph1Url: get('ph1_url', data.ph1Url || ''),
+      ph2Url: get('ph2_url', data.ph2Url || ''),
+      ph3Url: get('ph3_url', data.ph3Url || ''),
+      ph4Url: get('ph4_url', data.ph4Url || ''),
+      ph5Url: get('ph5_url', data.ph5Url || ''),
+      ph6Url: get('ph6_url', data.ph6Url || ''),
+      ph7Url: get('ph7_url', data.ph7Url || ''),
+      ph8Url: get('ph8_url', data.ph8Url || ''),
+      ph9Url: get('ph9_url', data.ph9Url || ''),
+      ph10Url: get('ph10_url', data.ph10Url || ''),
+      // Parse anniversaries from sheet if provided (pipe-separated lines)
+      anniversaries: kv.anniversaries
+        ? kv.anniversaries.split('|').reduce((acc,_,i,arr)=>{
+            if(i%3===0) acc.push({name:arr[i]||'',detail:arr[i+1]||'',extra:arr[i+2]||''});
+            return acc;
+          },[])
+        : (data.anniversaries || D.anniversaries),
+      birthdays: kv.birthdays
+        ? kv.birthdays.split('|').reduce((acc,_,i,arr)=>{
+            if(i%3===0) acc.push({name:arr[i]||'',detail:arr[i+1]||'',extra:arr[i+2]||''});
+            return acc;
+          },[])
+        : (data.birthdays || D.birthdays),
+      // Parse announcements from sheet if provided
+      // Sheet format: TYPE|Date|Text||TYPE|Date|Text (double pipe between entries)
+      announcements: kv.announcements
+        ? kv.announcements.split('||').map(entry => {
+            const parts = entry.split('|').map(s=>s.trim());
+            return {type:(parts[0]||'UPDATE').toUpperCase(), date:parts[1]||'', text:parts[2]||''};
+          }).filter(a=>a.text)
+        : (data.announcements || D.announcements),
+      trainings:     data.trainings     || D.trainings,
+      fridayTheme:  get('friday_theme', data.fridayTheme || D.fridayTheme),
+      fridayDesc:   get('friday_desc',  data.fridayDesc  || D.fridayDesc),
+      fridayTitle:  get('friday_title', data.fridayTitle || D.fridayTitle),
+      founding:     data.founding || D.founding,
+      // Always carry over sheet URL so auto-refresh keeps working
+      _sheetUrl: url,
+    };
+
+    try{ localStorage.setItem('moet-data', JSON.stringify(nd));
+         localStorage.setItem('moet-sheet-url', url); }catch(e){}
+    applyData(nd);
+
+    if(fs && !silent){
+      const t = new Date();
+      const timeStr = t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0')+':'+t.getSeconds().toString().padStart(2,'0');
+      const keys = Object.keys(kv);
+      const preview = keys.slice(0,6).map(k => k+'='+kv[k]).join(', ');
+      fs.innerHTML = '✓ Synced at '+timeStr+' &nbsp;|&nbsp; '+keys.length+' keys found<br>'
+        + '<span style="font-size:10px;color:rgba(255,255,255,.5);">First values: '+preview+'</span>';
+      fs.className = 'fstatus ok';
+    }
+    _flashLiveIndicator();
+    // Update form fields to match synced data
+    try{ if(typeof populateCfg==='function') populateCfg(); }catch(e){}
+
+  }catch(err){
+    if(fs && !silent){
+      fs.textContent = '✗ Parse/apply error: ' + err.message;
+      fs.className = 'fstatus err';
+    }
+    console.error('Sheet apply failed:', err);
+  }
+}
+
+// Keep fetchSheets as an alias so the button still works
+async function fetchSheets(){ return fetchAndApply(false); }
+
+// Flash the live dot green briefly when data updates
+function _flashLiveIndicator(){
+  const dot = document.querySelector('.live-dot');
+  if(dot){ dot.style.background='#fff'; dot.style.transform='scale(1.6)';
+    setTimeout(()=>{ dot.style.background=''; dot.style.transform=''; },800); }
+  const ls = document.getElementById('last-sync');
+  if(ls){ const n=new Date(); ls.textContent='Synced '+n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0'); }
+}
+
+// Auto-refresh every 2 minutes — fully silent, auto-applies
+// ── Auto-refresh every 30 seconds ──────────────────────────────────────
+function _getSheetUrl(){
+  // Always use hardcoded URL first — ensures everyone gets the same data
+  if(typeof SHEET_URL !== 'undefined' && SHEET_URL) {
+    try{
+      const urlEl = document.getElementById('cfg-url');
+      if(urlEl && !urlEl.value.trim()) urlEl.value = SHEET_URL;
+    }catch(e){}
+    return SHEET_URL;
+  }
+  try{
+    const urlEl = document.getElementById('cfg-url');
+    if(urlEl && urlEl.value.trim()) return urlEl.value.trim();
+    const saved = localStorage.getItem('moet-sheet-url');
+    if(saved){ if(urlEl) urlEl.value = saved; return saved; }
+  }catch(e){}
+  return '';
+}
+
+// Refresh every 30 seconds
+setInterval(()=>{
+  const url = _getSheetUrl();
+  if(url && !document.getElementById('cfg').classList.contains('on')){
+    fetchAndApply(true);
+  }
+}, 30 * 1000);
+
+// Also refresh when the browser tab becomes visible again (user switches back)
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    const url = _getSheetUrl();
+    if(url) setTimeout(()=>fetchAndApply(true), 500);
+  }
+});
+
+// Also refresh when the window gets focus (TV browser comes to foreground)
+window.addEventListener('focus', ()=>{
+  const url = _getSheetUrl();
+  if(url) setTimeout(()=>fetchAndApply(true), 500);
+});
+
+// ── CELEB PHOTO HELPERS ───────────────────────────────────────────────────
+function _getStoredPhoto(key){
+  try{ return localStorage.getItem('photo_'+key)||''; }catch(e){return '';}
+}
+
+function handleCelebPhoto(fileInputId, photoId){
+  const file = document.getElementById(fileInputId)?.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const dataUrl = e.target.result;
+    try{ localStorage.setItem('photo_'+photoId, dataUrl); }catch(ex){}
+    // Update circle on slide
+    const circle = document.getElementById(photoId+'-circle');
+    if(circle){
+      circle.innerHTML = `<img src="${dataUrl}" class="celeb-circle-img" alt="photo"/>`;
+    }
+    // Update preview in config
+    const prefix = photoId.replace('anniv-photo-','anniv-').replace('bday-photo-','bday-');
+    const prev = document.getElementById(prefix+'-preview') ||
+                 document.getElementById(photoId.replace('anniv-photo-','anniv-').replace('bday-photo-','bday-')+'-preview');
+    // Find preview by convention: anniv-0-preview or bday-0-preview
+    const num = photoId.split('-').pop();
+    const type = photoId.startsWith('anniv') ? 'anniv' : 'bday';
+    const prevEl = document.getElementById(type+'-'+num+'-preview');
+    if(prevEl){ prevEl.src=dataUrl; prevEl.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCelebPhoto(photoId, previewId){
+  try{ localStorage.removeItem('photo_'+photoId); }catch(e){}
+  const circle = document.getElementById(photoId+'-circle');
+  if(circle){
+    const type = photoId.startsWith('anniv') ? 'anniv' : 'bday';
+    circle.innerHTML = `<div class="celeb-circle-ph ${type}"><span>👤</span></div>`;
+  }
+  const prev = document.getElementById(previewId);
+  if(prev){ prev.src=''; prev.style.display='none'; }
+}
+
+function restoreCelebPhotos(){
+  // Restore anniv photos
+  for(let i=0;i<6;i++){
+    const stored=_getStoredPhoto('anniv-photo-'+i);
+    if(stored){
+      const circle=document.getElementById('anniv-photo-'+i+'-circle');
+      if(circle) circle.innerHTML=`<img src="${stored}" class="celeb-circle-img" alt="photo"/>`;
+      const prev=document.getElementById('anniv-'+i+'-preview');
+      if(prev){prev.src=stored;prev.style.display='block';}
+    }
+  }
+  // Restore bday photos
+  for(let i=0;i<6;i++){
+    const stored=_getStoredPhoto('bday-photo-'+i);
+    if(stored){
+      const circle=document.getElementById('bday-photo-'+i+'-circle');
+      if(circle) circle.innerHTML=`<img src="${stored}" class="celeb-circle-img" alt="photo"/>`;
+      const prev=document.getElementById('bday-'+i+'-preview');
+      if(prev){prev.src=stored;prev.style.display='block';}
+    }
+  }
+}
+
+// ── PHOTO UPLOAD ──────────────────────────────────────────────────────────
+function handlePhotoUpload(fileInputId, imgId, previewId, phId){
+  const file = document.getElementById(fileInputId)?.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const dataUrl = e.target.result;
+    // Show on slide
+    const img = document.getElementById(imgId);
+    const ph  = document.getElementById(phId);
+    if(img){ img.src = dataUrl; img.style.display='block'; }
+    if(ph)  ph.style.display='none';
+    // Show preview in config
+    const prev = document.getElementById(previewId);
+    if(prev){ prev.src = dataUrl; prev.style.display='block'; }
+    // Persist
+    try{ localStorage.setItem('photo_'+imgId, dataUrl); }catch(e){}
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPhoto(imgId, previewId, phId){
+  const img  = document.getElementById(imgId);
+  const ph   = document.getElementById(phId);
+  const prev = document.getElementById(previewId);
+  if(img)  { img.src=''; img.style.display='none'; }
+  if(ph)   ph.style.display='flex';
+  if(prev) { prev.src=''; prev.style.display='none'; }
+  try{ localStorage.removeItem('photo_'+imgId); }catch(e){}
+}
+
+function restorePhotos(){
+  const photoIds=['ph1-img','ph2-img','ph3-img','ph4-img','ph5-img','ph6-img','ph7-img','ph8-img','ph9-img','ph10-img','s12-photo-img'];
+  const previewMap={'ph1-img':'ph1-preview','ph2-img':'ph2-preview','ph3-img':'ph3-preview','ph4-img':'ph4-preview','ph5-img':'ph5-preview','ph6-img':'ph6-preview','ph7-img':'ph7-preview','ph8-img':'ph8-preview','ph9-img':'ph9-preview','ph10-img':'ph10-preview','s12-photo-img':'emp-photo-preview'};
+  const phMap={'ph1-img':'ph1-img-ph','ph2-img':'ph2-img-ph','ph3-img':'ph3-img-ph','ph4-img':'ph4-img-ph','ph5-img':'ph5-img-ph','ph6-img':'ph6-img-ph','ph7-img':'ph7-img-ph','ph8-img':'ph8-img-ph','ph9-img':'ph9-img-ph','ph10-img':'ph10-img-ph','s12-photo-img':'s12-photo-ph'};
+  photoIds.forEach(id=>{
+    try{
+      const stored = localStorage.getItem('photo_'+id);
+      if(stored){
+        const img  = document.getElementById(id);
+        const ph   = document.getElementById(phMap[id]);
+        const prev = document.getElementById(previewMap[id]);
+        if(img)  { img.src=stored; img.style.display='block'; }
+        if(ph)   ph.style.display='none';
+        if(prev) { prev.src=stored; prev.style.display='block'; }
+      }
+    }catch(e){}
+  });
+}
+
+(function init(){
+  // Start with defaults — sheet fetch will override immediately
+  applyData({...D});
+  setMode('dash');
+  restorePhotos();
+  restoreCelebPhotos();
+
+  // Always populate the URL field with the hardcoded sheet URL
+  try{
+    const urlEl = document.getElementById('cfg-url');
+    if(urlEl) urlEl.value = SHEET_URL;
+    localStorage.setItem('moet-sheet-url', SHEET_URL);
+  }catch(e){}
+
+  // Fetch live data from sheet immediately on every page load
+  // This ensures every device/browser gets the same live data
+  setTimeout(()=>fetchAndApply(true), 800);
+})();
+
+</script>
+</body>
+</html>
