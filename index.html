@@ -43,8 +43,8 @@ html,body{width:100%;height:100%;background:#000;color:#fff;font-family:var(--fo
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex-shrink:0;}
 .kpi{background:var(--gc);border:1px solid var(--gb);border-radius:9px;padding:16px 18px;position:relative;overflow:hidden;}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red);}
-.kpi.g::before{background:var(--teal);}
-.kpi.y::before{background:var(--gold);}
+.kpi.g::before{background:var(--red);}
+.kpi.y::before{background:var(--red);}
 .kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:8px;}
 .kpi-val{font-size:40px;font-weight:900;line-height:1;color:#fff;margin-bottom:4px;}
 .kpi-sub{font-size:11px;color:var(--gm);}
@@ -373,13 +373,16 @@ html,body{width:100%;height:100%;background:#000;color:#fff;font-family:var(--fo
 <div id="dash" class="on">
   <div class="kpi-row">
     <div class="kpi"><div class="kpi-lbl">New Cases Signed</div><div class="kpi-val" id="d-nc">--</div><div class="kpi-sub">This Month</div></div>
-    <div class="kpi g"><div class="kpi-lbl">Demands Sent</div><div class="kpi-val" id="d-dm">--</div><div class="kpi-sub">This Month</div></div>
+    <div class="kpi"><div class="kpi-lbl">Demands Sent</div><div class="kpi-val" id="d-dm">--</div><div class="kpi-sub">This Month</div></div>
+    <div class="kpi"><div class="kpi-lbl">Total Settlement Amount</div><div class="kpi-val" id="d-stAmt" style="font-size:28px;">--</div><div class="kpi-sub">This Month</div></div>
+    <div class="kpi"><div class="kpi-lbl">Pre-Lit Settlement</div><div class="kpi-val" id="d-stPrelit" style="font-size:28px;">--</div><div class="kpi-sub">This Month</div></div>
+    <div class="kpi"><div class="kpi-lbl">Litigation Settlement</div><div class="kpi-val" id="d-stLit" style="font-size:28px;">--</div><div class="kpi-sub">This Month</div></div>
   </div>
   <div class="chart-rows">
     <div class="chart-row r1">
       
       
-      <div class="cpanel"><div class="ptitle">Team Overview</div><table class="ttbl"><thead><tr><th>Team</th><th>Active</th><th>Settled</th></tr></thead><tbody id="d-team-tbody"></tbody></table></div>
+      <div class="cpanel"><div class="ptitle">Team Overview</div><table class="ttbl"><thead><tr><th>Team</th><th>Active</th><th>Settlement Amt</th></tr></thead><tbody id="d-team-tbody"></tbody></table></div>
     </div>
     <div class="chart-row r2">
       <div class="cpanel"><div class="ptitle">Active Cases by Team</div><div class="cwrap"><canvas id="c-ta" role="img" aria-label="Active by team">Active cases</canvas></div></div>
@@ -949,111 +952,133 @@ html,body{width:100%;height:100%;background:#000;color:#fff;font-family:var(--fo
     </div>
   </div>
   <div class="cfg-sec">
-    <div class="cfg-sec-title">Photo Slides (Full-Screen Images)</div>
+    <div class="cfg-sec-title">Photos &amp; Images</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.7;">
+      Paste a public image URL into any field below. The photo appears on the slide instantly and syncs automatically when set in your Google Sheet.<br>
+      <strong style="color:#fff;">Google Drive URL format:</strong>
+      <code style="color:#BB0D03;">https://drive.google.com/uc?export=view&amp;id=FILE_ID</code>
+    </div>
     <div class="cfg-grid">
       <div class="cf">
+        <label>Employee of the Month Photo</label>
+        <input type="text" id="url-emp" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'s12-photo-img','s12-photo-ph','url-emp-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-emp-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">emp_photo_url</code>
+        </div>
+      </div>
+      <div class="cf">
         <label>Photo Slide 1 (after Intro)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph1-file" accept="image/*" onchange="handlePhotoUpload('ph1-file','ph1-img','ph1-preview','ph1-img-ph')" />
-          <img id="ph1-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph1-img','ph1-preview','ph1-img-ph')">✕ Remove Photo</button>
+        <input type="text" id="url-ph1" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph1-img','ph1-img-ph','url-ph1-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph1-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph1_url</code>
         </div>
       </div>
       <div class="cf">
         <label>Photo Slide 2 (after Performance)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph2-file" accept="image/*" onchange="handlePhotoUpload('ph2-file','ph2-img','ph2-preview','ph2-img-ph')" />
-          <img id="ph2-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph2-img','ph2-preview','ph2-img-ph')">✕ Remove Photo</button>
+        <input type="text" id="url-ph2" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph2-img','ph2-img-ph','url-ph2-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph2-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph2_url</code>
         </div>
       </div>
       <div class="cf">
-        <label>Photo Slide 3 (after Team Slides)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph3-file" accept="image/*" onchange="handlePhotoUpload('ph3-file','ph3-img','ph3-preview','ph3-img-ph')" />
-          <img id="ph3-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph3-img','ph3-preview','ph3-img-ph')">✕ Remove Photo</button>
+        <label>Photo Slide 3 (after Team 1)</label>
+        <input type="text" id="url-ph3" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph3-img','ph3-img-ph','url-ph3-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph3-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph3_url</code>
         </div>
       </div>
       <div class="cf">
-        <label>Photo Slide 4 (between Performance slides)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph4-file" accept="image/*" onchange="handlePhotoUpload('ph4-file','ph4-img','ph4-preview','ph4-img-ph')" />
-          <img id="ph4-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph4-img','ph4-preview','ph4-img-ph')">✕ Remove Photo</button>
+        <label>Photo Slide 4 (after Team 2)</label>
+        <input type="text" id="url-ph4" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph4-img','ph4-img-ph','url-ph4-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph4-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph4_url</code>
         </div>
       </div>
       <div class="cf">
-        <label>Photo Slide 5 (between Team 1 & 2)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph5-file" accept="image/*" onchange="handlePhotoUpload('ph5-file','ph5-img','ph5-preview','ph5-img-ph')" />
-          <img id="ph5-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph5-img','ph5-preview','ph5-img-ph')">✕ Remove Photo</button>
+        <label>Photo Slide 5 (after Team 3)</label>
+        <input type="text" id="url-ph5" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph5-img','ph5-img-ph','url-ph5-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph5-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph5_url</code>
         </div>
       </div>
       <div class="cf">
-        <label>Photo Slide 6 (between Team 2 & 3)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph6-file" accept="image/*" onchange="handlePhotoUpload('ph6-file','ph6-img','ph6-preview','ph6-img-ph')" />
-          <img id="ph6-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph6-img','ph6-preview','ph6-img-ph')">✕ Remove Photo</button>
+        <label>Photo Slide 6 (after Team 4)</label>
+        <input type="text" id="url-ph6" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph6-img','ph6-img-ph','url-ph6-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph6-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph6_url</code>
         </div>
       </div>
       <div class="cf">
-        <label>Photo Slide 7 (between Team 4 & 5)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph7-file" accept="image/*" onchange="handlePhotoUpload('ph7-file','ph7-img','ph7-preview','ph7-img-ph')" />
-          <img id="ph7-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph7-img','ph7-preview','ph7-img-ph')">✕ Remove Photo</button>
+        <label>Photo Slide 7 (after Team 5)</label>
+        <input type="text" id="url-ph7" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph7-img','ph7-img-ph','url-ph7-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph7-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph7_url</code>
         </div>
       </div>
       <div class="cf">
-        <label>Photo Slide 8 (between Team 5 & 6)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph8-file" accept="image/*" onchange="handlePhotoUpload('ph8-file','ph8-img','ph8-preview','ph8-img-ph')" />
-          <img id="ph8-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph8-img','ph8-preview','ph8-img-ph')">✕ Remove Photo</button>
+        <label>Photo Slide 8 (after Team 6)</label>
+        <input type="text" id="url-ph8" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph8-img','ph8-img-ph','url-ph8-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph8-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph8_url</code>
         </div>
       </div>
       <div class="cf">
         <label>Photo Slide 9 (before Employee)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph9-file" accept="image/*" onchange="handlePhotoUpload('ph9-file','ph9-img','ph9-preview','ph9-img-ph')" />
-          <img id="ph9-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph9-img','ph9-preview','ph9-img-ph')">✕ Remove Photo</button>
+        <input type="text" id="url-ph9" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph9-img','ph9-img-ph','url-ph9-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph9-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph9_url</code>
         </div>
       </div>
       <div class="cf">
         <label>Photo Slide 10 (after Employee)</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="ph10-file" accept="image/*" onchange="handlePhotoUpload('ph10-file','ph10-img','ph10-preview','ph10-img-ph')" />
-          <img id="ph10-preview" class="photo-preview" alt="Preview" />
-          <button class="photo-clear-btn" onclick="clearPhoto('ph10-img','ph10-preview','ph10-img-ph')">✕ Remove Photo</button>
+        <input type="text" id="url-ph10" placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyUrlField(this.value,'ph10-img','ph10-img-ph','url-ph10-preview')"
+          style="margin-bottom:6px;" />
+        <img id="url-ph10-preview" src="" alt="preview"
+          style="display:none;width:100%;max-height:60px;object-fit:cover;border-radius:5px;border:1px solid var(--gb);margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">
+          Sheet key: <code style="color:#BB0D03;">ph10_url</code>
         </div>
-      </div>
-    </div>
-  </div>
-  <div class="cfg-sec">
-    <div class="cfg-sec-title">Photo URLs (Shared via Google Sheets)</div>
-    <div style="font-size:12px;color:var(--gm);margin-bottom:14px;line-height:1.8;">
-      Add photo URLs directly in your Google Sheet (column B) next to the key. Photos update automatically on the next sync and are visible to all viewers.<br><br>
-      <strong style="color:var(--teal);">How to get the URL from Google Drive:</strong><br>
-      1. Upload photo to Google Drive → right-click → <strong style="color:#fff;">Share</strong> → Anyone with the link<br>
-      2. Copy the link — it looks like: <code style="color:var(--gm);">https://drive.google.com/file/d/FILE_ID/view</code><br>
-      3. Change it to: <code style="color:var(--gold);">https://drive.google.com/uc?export=view&amp;id=FILE_ID</code><br><br>
-      <strong style="color:#fff;">Sheet keys to use:</strong><br>
-      <code style="color:var(--gold);">emp_photo_url</code> — Employee of the Month<br>
-      <code style="color:var(--gold);">ph1_url</code> through <code style="color:var(--gold);">ph10_url</code> — Photo Slides 1–10
-    </div>
-  </div>
-  <div class="cfg-sec">
-    <div class="cfg-sec-title">Employee of the Month — Profile Photo (Local Only)</div>
-    <div class="cf" style="max-width:340px;">
-      <label>Employee Photo</label>
-      <div class="photo-upload-wrap">
-        <input type="file" id="emp-photo-file" accept="image/*" onchange="handlePhotoUpload('emp-photo-file','s12-photo-img','emp-photo-preview','s12-photo-ph')" />
-        <img id="emp-photo-preview" class="photo-preview" style="height:100px;width:100px;border-radius:50%;" alt="Preview" />
-        <button class="photo-clear-btn" onclick="clearPhoto('s12-photo-img','emp-photo-preview','s12-photo-ph')">✕ Remove Photo</button>
       </div>
     </div>
   </div>
@@ -1088,99 +1113,126 @@ html,body{width:100%;height:100%;background:#000;color:#fff;font-family:var(--fo
   </div>
   <div class="cfg-sec">
     <div class="cfg-sec-title">Anniversary &amp; Birthday Photos</div>
-    <div style="font-size:12px;color:var(--gm);margin-bottom:14px;line-height:1.6;">Upload photos for each person listed above. Photos are saved automatically and persist after page refresh. Add photos in the same order as the names listed above.</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.7;">
+      Paste a public image URL for each person. Syncs automatically from Google Sheet.<br>
+      <strong style="color:#fff;">Google Drive format:</strong> <code style="color:#BB0D03;">https://drive.google.com/uc?export=view&amp;id=FILE_ID</code>
+    </div>
     <div class="cfg-grid">
+      <div class="cf" style="grid-column:1/-1;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding-bottom:6px;border-bottom:1px solid var(--gb);">Work Anniversaries</div>
       <div class="cf">
         <label>Anniversary Person 1 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="anniv-0-file" accept="image/*" onchange="handleCelebPhoto('anniv-0-file','anniv-photo-0')" />
-          <img id="anniv-0-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-0','anniv-0-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-anniv-0"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('anniv',0,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-anniv-0-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">anniv1_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Anniversary Person 2 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="anniv-1-file" accept="image/*" onchange="handleCelebPhoto('anniv-1-file','anniv-photo-1')" />
-          <img id="anniv-1-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-1','anniv-1-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-anniv-1"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('anniv',1,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-anniv-1-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">anniv2_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Anniversary Person 3 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="anniv-2-file" accept="image/*" onchange="handleCelebPhoto('anniv-2-file','anniv-photo-2')" />
-          <img id="anniv-2-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-2','anniv-2-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-anniv-2"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('anniv',2,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-anniv-2-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">anniv3_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Anniversary Person 4 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="anniv-3-file" accept="image/*" onchange="handleCelebPhoto('anniv-3-file','anniv-photo-3')" />
-          <img id="anniv-3-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-3','anniv-3-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-anniv-3"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('anniv',3,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-anniv-3-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">anniv4_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Anniversary Person 5 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="anniv-4-file" accept="image/*" onchange="handleCelebPhoto('anniv-4-file','anniv-photo-4')" />
-          <img id="anniv-4-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('anniv-photo-4','anniv-4-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-anniv-4"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('anniv',4,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-anniv-4-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">anniv5_photo_url</code></div>
       </div>
+      <div class="cf" style="grid-column:1/-1;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding-bottom:6px;border-bottom:1px solid var(--gb);margin-top:10px;">Birthdays</div>
       <div class="cf">
         <label>Birthday Person 1 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="bday-0-file" accept="image/*" onchange="handleCelebPhoto('bday-0-file','bday-photo-0')" />
-          <img id="bday-0-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-0','bday-0-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-bday-0"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('bday',0,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-bday-0-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">bday1_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Birthday Person 2 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="bday-1-file" accept="image/*" onchange="handleCelebPhoto('bday-1-file','bday-photo-1')" />
-          <img id="bday-1-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-1','bday-1-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-bday-1"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('bday',1,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-bday-1-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">bday2_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Birthday Person 3 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="bday-2-file" accept="image/*" onchange="handleCelebPhoto('bday-2-file','bday-photo-2')" />
-          <img id="bday-2-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-2','bday-2-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-bday-2"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('bday',2,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-bday-2-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">bday3_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Birthday Person 4 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="bday-3-file" accept="image/*" onchange="handleCelebPhoto('bday-3-file','bday-photo-3')" />
-          <img id="bday-3-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-3','bday-3-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-bday-3"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('bday',3,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-bday-3-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">bday4_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Birthday Person 5 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="bday-4-file" accept="image/*" onchange="handleCelebPhoto('bday-4-file','bday-photo-4')" />
-          <img id="bday-4-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-4','bday-4-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-bday-4"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('bday',4,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-bday-4-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">bday5_photo_url</code></div>
       </div>
       <div class="cf">
         <label>Birthday Person 6 Photo</label>
-        <div class="photo-upload-wrap">
-          <input type="file" id="bday-5-file" accept="image/*" onchange="handleCelebPhoto('bday-5-file','bday-photo-5')" />
-          <img id="bday-5-preview" class="photo-preview" alt="Preview" style="border-radius:50%;width:60px;height:60px;" />
-          <button class="photo-clear-btn" onclick="clearCelebPhoto('bday-photo-5','bday-5-preview')">✕ Remove</button>
-        </div>
+        <input type="text" id="url-bday-5"
+          placeholder="https://drive.google.com/uc?export=view&amp;id=FILE_ID"
+          oninput="applyCelebUrlField('bday',5,this.value)"
+          style="margin-bottom:6px;" />
+        <img id="url-bday-5-preview" src="" alt="preview"
+          style="display:none;width:60px;height:60px;object-fit:cover;border-radius:50%;border:2px solid #BB0D03;margin-top:4px;" />
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;">Sheet key: <code style="color:#BB0D03;">bday6_photo_url</code></div>
       </div>
     </div>
   </div>
-<div class="cfg-sec">
+  <div class="cfg-sec">
     <div class="cfg-sec-title">Friday Theme Day</div>
     <div class="cfg-grid">
       <div class="cf"><label>Theme Title (e.g. "Spirit Friday")</label><input type="text" id="c-friday-theme" placeholder="🎉 Spirit Friday"/></div>
@@ -1328,19 +1380,20 @@ function pct(actual,goal){return Math.min(100,Math.round((+actual||0)/(+goal||1)
 
 function applyData(d){
   data = d;
-  console.log('applyData called — nc:', d.nc, 'dm:', d.dm, 'teams:', d.teams && d.teams[0] && d.teams[0].name);
-
   // ── Dashboard KPIs ──────────────────────────────────────────────────────
   setTxt('d-nc', d.nc);
   setTxt('d-dm', d.dm);
+  setTxt('d-stAmt',    d.stAmt    || '$0');
+  setTxt('d-stPrelit', d.stPrelitAmt || '$0');
+  setTxt('d-stLit',    d.stLitAmt    || '$0');
 
   // Dashboard team table — only fields that exist
   const teams = d.teams || D.teams;
   document.getElementById('d-team-tbody').innerHTML = teams.map(t => `
     <tr>
       <td><span class="tnm">${t.name||''}</span></td>
-      <td style="color:var(--teal)">${t.active||0}</td>
-      <td style="color:var(--gold);font-weight:900;">${t.settleAmt||'$0'}</td>
+      <td style="color:rgba(255,255,255,.7)">${t.active||0}</td>
+      <td style="color:#fff;font-weight:900;">${t.settleAmt||'$0'}</td>
     </tr>`).join('');
 
   // Dashboard team table header fix — show Amount not Settled count
@@ -1389,6 +1442,10 @@ function applyData(d){
   }
 
   // ── Slide 13 — Celebrations ───────────────────────────────────────────────
+  // Apply celeb photo URLs from sheet sync
+  if(d._annivPhotoUrls) d._annivPhotoUrls.forEach((url,i)=>{ if(url) applyCelebUrlField('anniv',i,url); });
+  if(d._bdayPhotoUrls)  d._bdayPhotoUrls.forEach((url,i)=>{ if(url) applyCelebUrlField('bday',i,url); });
+
   const annivEl = document.getElementById('s13-anniv');
   if(annivEl) annivEl.innerHTML = (d.anniversaries||[]).map((a,i) => {
     const pid = 'anniv-photo-'+i;
@@ -1448,6 +1505,19 @@ function applyData(d){
   _applyPhotoUrl('ph10-img', 'ph10-img-ph', d.ph10Url);
   // Employee photo
   _applyPhotoUrl('s12-photo-img', 's12-photo-ph', d.empPhotoUrl);
+  // Fill URL input fields so Setup panel reflects synced sheet values
+  function _setUrlField(pid, url){
+    const el = document.getElementById('url-'+pid);
+    if(el && url){ el.value = url; }
+    const prev = document.getElementById('url-'+pid+'-preview');
+    if(prev && url && url.startsWith('http')){ prev.src = url; prev.style.display = 'block'; }
+  }
+  _setUrlField('emp', d.empPhotoUrl||'');
+  _setUrlField('ph1',  d.ph1Url||'');  _setUrlField('ph2',  d.ph2Url||'');
+  _setUrlField('ph3',  d.ph3Url||'');  _setUrlField('ph4',  d.ph4Url||'');
+  _setUrlField('ph5',  d.ph5Url||'');  _setUrlField('ph6',  d.ph6Url||'');
+  _setUrlField('ph7',  d.ph7Url||'');  _setUrlField('ph8',  d.ph8Url||'');
+  _setUrlField('ph9',  d.ph9Url||'');  _setUrlField('ph10', d.ph10Url||'');
 
   // ── Re-render charts ────────────────────────────────────────────────────────
   renderDashCharts(d);
@@ -1521,9 +1591,23 @@ function teamVsGoalChart(id,actual,goal,label,color){
 }
 
 function renderDashCharts(d){
-
-  mkChart('c-ta','bar',d.teams.map(t=>t.name),[{data:d.teams.map(t=>+t.active||0),backgroundColor:[CC.red2,CC.teal2,CC.gold2],borderRadius:5}]);
-  mkChart('c-ts','bar',d.teams.map(t=>t.name),[{data:d.teams.map(t=>parseFloat((t.settleAmt||'0').replace(/[^0-9.]/g,''))||0),backgroundColor:[CC.red2,CC.teal2,CC.gold2],borderRadius:5}]);
+  // Use shades of red/dark for 6 teams
+  const teamColors = [
+    'rgba(187,13,3,.95)',
+    'rgba(187,13,3,.75)',
+    'rgba(187,13,3,.55)',
+    'rgba(187,13,3,.40)',
+    'rgba(187,13,3,.25)',
+    'rgba(187,13,3,.15)',
+  ];
+  mkChart('c-ta','bar',d.teams.map(t=>t.name),[{
+    data:d.teams.map(t=>+t.active||0),
+    backgroundColor:teamColors,borderRadius:5
+  }]);
+  mkChart('c-ts','bar',d.teams.map(t=>t.name),[{
+    data:d.teams.map(t=>parseFloat((t.settleAmt||'0').replace(/[^0-9.]/g,''))||0),
+    backgroundColor:teamColors,borderRadius:5
+  }]);
 }
 
 function renderSlideCharts(){
@@ -1628,6 +1712,17 @@ function saveCfg(){
     }).filter(a=>a.text),
     trainings:pl3(gv('c-train','')).map(r=>({cat:r.f0.toUpperCase(),title:r.f1,desc:r.f2})),
     fridayTheme:gv('c-friday-theme',D.fridayTheme),fridayDesc:gv('c-friday-desc',D.fridayDesc),fridayTitle:gv('c-friday-title',D.fridayTitle),
+    empPhotoUrl: (document.getElementById('url-emp')||{}).value||data.empPhotoUrl||'',
+    ph1Url:  (document.getElementById('url-ph1')||{}).value||data.ph1Url||'',
+    ph2Url:  (document.getElementById('url-ph2')||{}).value||data.ph2Url||'',
+    ph3Url:  (document.getElementById('url-ph3')||{}).value||data.ph3Url||'',
+    ph4Url:  (document.getElementById('url-ph4')||{}).value||data.ph4Url||'',
+    ph5Url:  (document.getElementById('url-ph5')||{}).value||data.ph5Url||'',
+    ph6Url:  (document.getElementById('url-ph6')||{}).value||data.ph6Url||'',
+    ph7Url:  (document.getElementById('url-ph7')||{}).value||data.ph7Url||'',
+    ph8Url:  (document.getElementById('url-ph8')||{}).value||data.ph8Url||'',
+    ph9Url:  (document.getElementById('url-ph9')||{}).value||data.ph9Url||'',
+    ph10Url: (document.getElementById('url-ph10')||{}).value||data.ph10Url||'',
   };
   try{localStorage.setItem('moet-data',JSON.stringify(nd));}catch(e){}
   applyData(nd); closeCfg();
@@ -1793,6 +1888,9 @@ async function fetchAndApply(silent=false){
       ph8Url: get('ph8_url', data.ph8Url || ''),
       ph9Url: get('ph9_url', data.ph9Url || ''),
       ph10Url: get('ph10_url', data.ph10Url || ''),
+      // Celeb photo URLs from sheet
+      _annivPhotoUrls: Array.from({length:5},(_,i)=>get('anniv'+(i+1)+'_photo_url','')),
+      _bdayPhotoUrls:  Array.from({length:6},(_,i)=>get('bday'+(i+1)+'_photo_url','')),
       // Parse anniversaries from sheet if provided (pipe-separated lines)
       anniversaries: kv.anniversaries
         ? kv.anniversaries.split('|').reduce((acc,_,i,arr)=>{
@@ -1903,6 +2001,26 @@ window.addEventListener('focus', ()=>{
   if(url) setTimeout(()=>fetchAndApply(true), 500);
 });
 
+
+// ── CELEB PHOTO URL FIELD HANDLER ────────────────────────────────────────────
+function applyCelebUrlField(type_, idx, url){
+  const circleId = type_+'-photo-'+idx+'-circle';
+  const circle   = document.getElementById(circleId);
+  const prevId   = 'url-'+type_+'-'+idx+'-preview';
+  const prev     = document.getElementById(prevId);
+  const cls      = type_ === 'anniv' ? 'anniv' : 'bday';
+
+  if(url && url.trim().startsWith('http')){
+    if(circle) circle.innerHTML = `<img src="${url}" class="celeb-circle-img" alt="photo"/>`;
+    if(prev){ prev.src = url; prev.style.display = 'block'; }
+    try{ localStorage.setItem('photo_celeb_'+type_+'_'+idx, url); }catch(e){}
+  } else {
+    if(circle) circle.innerHTML = `<div class="celeb-circle-ph ${cls}"><span>👤</span></div>`;
+    if(prev){ prev.src=''; prev.style.display='none'; }
+    try{ localStorage.removeItem('photo_celeb_'+type_+'_'+idx); }catch(e){}
+  }
+}
+
 // ── CELEB PHOTO HELPERS ───────────────────────────────────────────────────
 function _getStoredPhoto(key){
   try{ return localStorage.getItem('photo_'+key)||''; }catch(e){return '';}
@@ -1945,26 +2063,50 @@ function clearCelebPhoto(photoId, previewId){
 }
 
 function restoreCelebPhotos(){
-  // Restore anniv photos
+  // Restore anniv photos — check both old localStorage and new URL localStorage
   for(let i=0;i<6;i++){
-    const stored=_getStoredPhoto('anniv-photo-'+i);
+    const stored = localStorage.getItem('photo_celeb_anniv_'+i) || _getStoredPhoto('anniv-photo-'+i);
     if(stored){
       const circle=document.getElementById('anniv-photo-'+i+'-circle');
       if(circle) circle.innerHTML=`<img src="${stored}" class="celeb-circle-img" alt="photo"/>`;
-      const prev=document.getElementById('anniv-'+i+'-preview');
+      const urlEl=document.getElementById('url-anniv-'+i);
+      if(urlEl) urlEl.value=stored;
+      const prev=document.getElementById('url-anniv-'+i+'-preview');
       if(prev){prev.src=stored;prev.style.display='block';}
     }
   }
-  // Restore bday photos
+  // Restore bday photos — check both old localStorage and new URL localStorage
   for(let i=0;i<6;i++){
-    const stored=_getStoredPhoto('bday-photo-'+i);
+    const stored = localStorage.getItem('photo_celeb_bday_'+i) || _getStoredPhoto('bday-photo-'+i);
     if(stored){
       const circle=document.getElementById('bday-photo-'+i+'-circle');
       if(circle) circle.innerHTML=`<img src="${stored}" class="celeb-circle-img" alt="photo"/>`;
-      const prev=document.getElementById('bday-'+i+'-preview');
+      const urlEl=document.getElementById('url-bday-'+i);
+      if(urlEl) urlEl.value=stored;
+      const prev=document.getElementById('url-bday-'+i+'-preview');
       if(prev){prev.src=stored;prev.style.display='block';}
     }
   }
+}
+
+
+// ── PHOTO URL FIELD HANDLER ──────────────────────────────────────────────────
+function applyUrlField(url, imgId, phId, previewId){
+  const img  = document.getElementById(imgId);
+  const ph   = document.getElementById(phId);
+  const prev = document.getElementById(previewId);
+  if(url && url.trim().startsWith('http')){
+    if(img){ img.src = url; img.style.display = 'block'; }
+    if(ph)  ph.style.display = 'none';
+    if(prev){ prev.src = url; prev.style.display = 'block'; }
+  } else {
+    if(img){ img.src = ''; img.style.display = 'none'; }
+    if(ph)  ph.style.display = 'flex';
+    if(prev){ prev.src = ''; prev.style.display = 'none'; }
+  }
+  // Save to localStorage for persistence
+  try{ if(url.trim()) localStorage.setItem('photo_url_'+imgId, url.trim());
+       else localStorage.removeItem('photo_url_'+imgId); }catch(e){}
 }
 
 // ── PHOTO UPLOAD ──────────────────────────────────────────────────────────
@@ -2002,6 +2144,25 @@ function restorePhotos(){
   const photoIds=['ph1-img','ph2-img','ph3-img','ph4-img','ph5-img','ph6-img','ph7-img','ph8-img','ph9-img','ph10-img','s12-photo-img'];
   const previewMap={'ph1-img':'ph1-preview','ph2-img':'ph2-preview','ph3-img':'ph3-preview','ph4-img':'ph4-preview','ph5-img':'ph5-preview','ph6-img':'ph6-preview','ph7-img':'ph7-preview','ph8-img':'ph8-preview','ph9-img':'ph9-preview','ph10-img':'ph10-preview','s12-photo-img':'emp-photo-preview'};
   const phMap={'ph1-img':'ph1-img-ph','ph2-img':'ph2-img-ph','ph3-img':'ph3-img-ph','ph4-img':'ph4-img-ph','ph5-img':'ph5-img-ph','ph6-img':'ph6-img-ph','ph7-img':'ph7-img-ph','ph8-img':'ph8-img-ph','ph9-img':'ph9-img-ph','ph10-img':'ph10-img-ph','s12-photo-img':'s12-photo-ph'};
+  // Also restore URL input fields from localStorage
+  const urlPids = ['emp','ph1','ph2','ph3','ph4','ph5','ph6','ph7','ph8','ph9','ph10'];
+  const urlImgIds = {'emp':'s12-photo-img','ph1':'ph1-img','ph2':'ph2-img','ph3':'ph3-img',
+    'ph4':'ph4-img','ph5':'ph5-img','ph6':'ph6-img','ph7':'ph7-img','ph8':'ph8-img',
+    'ph9':'ph9-img','ph10':'ph10-img'};
+  const urlPhIds = {'emp':'s12-photo-ph','ph1':'ph1-img-ph','ph2':'ph2-img-ph','ph3':'ph3-img-ph',
+    'ph4':'ph4-img-ph','ph5':'ph5-img-ph','ph6':'ph6-img-ph','ph7':'ph7-img-ph','ph8':'ph8-img-ph',
+    'ph9':'ph9-img-ph','ph10':'ph10-img-ph'};
+  urlPids.forEach(pid=>{
+    try{
+      const stored = localStorage.getItem('photo_url_'+urlImgIds[pid]);
+      if(stored){
+        const el = document.getElementById('url-'+pid);
+        if(el) el.value = stored;
+        applyUrlField(stored, urlImgIds[pid], urlPhIds[pid], 'url-'+pid+'-preview');
+      }
+    }catch(e){}
+  });
+
   photoIds.forEach(id=>{
     try{
       const stored = localStorage.getItem('photo_'+id);
